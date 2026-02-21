@@ -191,3 +191,4 @@ Route::post('/kirim-berita', [App\Http\Controllers\SubmissionController::class, 
 
 // Catch-all Page Route (Must be last)
 Route::get('/{page:slug}', [PageController::class, 'show'])->name('pages.show');
+// Tes update ke vps
