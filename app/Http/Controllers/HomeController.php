@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Models\Category;
 use App\Models\Slider;
 use App\Models\Event;
+use App\Models\DigitalBanner;
 
 class HomeController extends Controller
 {
@@ -50,6 +51,9 @@ class HomeController extends Controller
             ->where('slug', '!=', 'agenda') // Exclude agenda category from general news loop if it's special
             ->get();
 
+        // 5. Digital Banners
+        $digitalBanners = DigitalBanner::where('is_active', true)->orderBy('order')->get();
+
         return view('home', [
             'sliders' => $sliders,
             'mainPost' => $mainPost,
@@ -58,6 +62,7 @@ class HomeController extends Controller
             'agendas' => $agendas,
             'latestPosts' => $allLatest->take(10), // For newsflash
             'categorySections' => $categorySections,
+            'digitalBanners' => $digitalBanners,
             //'sidebarWidgets' => not used (feature removed)
         ]);
     }

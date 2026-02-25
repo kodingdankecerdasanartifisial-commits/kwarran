@@ -61,12 +61,27 @@ class PostController extends Controller
     {
         $isMateri = $request->get('type') === 'materi';
         $selectedCategoryId = $request->get('category_id');
+        $user = auth()->user();
+        $dkrCategory = Category::where('name', 'DKR')->first();
         
         if ($isMateri) {
             $categories = Category::where('name', 'like', 'Materi%')->get();
         } else {
-            // regular posts usually exclude specific materi categories if needed, but for now allow all or filter out materi
-            $categories = Category::where('name', 'not like', 'Materi%')->get();
+            if ($user->role === 'dkr') {
+                // DKR users can only create posts in the DKR category.
+                // Auto-select DKR category if not present in request
+                if ($dkrCategory && !$selectedCategoryId) {
+                    $selectedCategoryId = $dkrCategory->id;
+                }
+
+                if (!$dkrCategory || (int)$selectedCategoryId !== $dkrCategory->id) {
+                    return redirect()->route('admin.dkr.posts')->with('error', 'Akses tidak valid untuk membuat postingan DKR.');
+                }
+                $categories = Category::where('id', $dkrCategory->id)->get();
+            } else {
+                // Admin and other roles see all non-materi categories
+                $categories = Category::where('name', 'not like', 'Materi%')->get();
+            }
         }
 
         return view('admin.posts.create', compact('categories', 'isMateri', 'selectedCategoryId'));

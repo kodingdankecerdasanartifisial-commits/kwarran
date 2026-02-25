@@ -26,17 +26,17 @@ class GalleryController extends Controller
         $request->validate([
             'type' => 'required|in:photo,video',
             'title' => 'required|max:255',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // WebP allowed
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // For single cover
             'external_link' => 'nullable|string',
             'description' => 'nullable'
         ]);
 
         if ($request->type === 'photo') {
             if ($request->hasFile('images')) {
+                // Bulk upload - each image is a record
                 foreach ($request->file('images') as $image) {
-                    // Simple compression using GD (resize if too large, then save as jpg with quality 70)
                     $path = $this->compressAndStore($image);
-                    
                     Gallery::create([
                         'type' => 'photo',
                         'title' => $request->title,
@@ -47,10 +47,16 @@ class GalleryController extends Controller
                 }
                 return redirect()->route('admin.gallery.index')->with('success', 'Foto berhasil diunggah.');
             } elseif ($request->external_link) {
-                // Link to Google Drive/Photos
+                // Link to Google Drive/Photos with optional cover
+                $path = null;
+                if ($request->hasFile('image')) {
+                    $path = $this->compressAndStore($request->file('image'));
+                }
+
                 Gallery::create([
                     'type' => 'photo',
                     'title' => $request->title,
+                    'image' => $path,
                     'external_link' => $request->external_link,
                     'description' => $request->description,
                     'is_published' => true
@@ -94,9 +100,7 @@ class GalleryController extends Controller
                 if ($gallery->image) Storage::disk('public')->delete($gallery->image);
                 $gallery->image = $this->compressAndStore($request->file('image'));
             }
-            if ($request->filled('external_link')) {
-                $gallery->external_link = $request->external_link;
-            }
+            $gallery->external_link = $request->external_link;
         } else {
             if ($request->filled('external_link')) {
                 $gallery->external_link = $this->parseYoutubeId($request->external_link);

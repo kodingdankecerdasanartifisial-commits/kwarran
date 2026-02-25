@@ -23,6 +23,6 @@ class RoleMiddleware
             return $next($request);
         }
 
-        return redirect()->route('admin.dashboard')->with('error', 'Akses ditolak: Peran Anda (' . auth()->user()->role . ') tidak memiliki izin untuk mengakses halaman tersebut.');
+        return redirect('/')->with('error', 'Akses ditolak: Peran Anda (' . auth()->user()->role . ') tidak memiliki izin untuk mengakses halaman tersebut.');
     }
 }

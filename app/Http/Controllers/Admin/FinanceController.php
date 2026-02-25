@@ -46,7 +46,7 @@ class FinanceController extends Controller
 
         \App\Models\Finance::create($validated);
 
-        return redirect()->route('admin.finances.index')->with('success', 'Laporan keuangan berhasil ditambahkan.');
+        return redirect()->route('admin.lpk.finances.index')->with('success', 'Laporan keuangan berhasil ditambahkan.');
     }
 
     public function edit(\App\Models\Finance $finance)
@@ -73,7 +73,7 @@ class FinanceController extends Controller
 
         $finance->update($validated);
 
-        return redirect()->route('admin.finances.index')->with('success', 'Laporan keuangan berhasil diperbarui.');
+        return redirect()->route('admin.lpk.finances.index')->with('success', 'Laporan keuangan berhasil diperbarui.');
     }
 
     public function destroy(\App\Models\Finance $finance)
@@ -83,7 +83,7 @@ class FinanceController extends Controller
         }
 
         $finance->delete();
-        return redirect()->route('admin.finances.index')->with('success', 'Laporan keuangan berhasil dihapus.');
+        return redirect()->route('admin.lpk.finances.index')->with('success', 'Laporan keuangan berhasil dihapus.');
     }
 
     public function calendar()

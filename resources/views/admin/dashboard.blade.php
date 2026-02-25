@@ -59,7 +59,7 @@
 </div>
 
 <div class="row mt-4">
-    <div class="col-md-6 mb-4">
+    <div class="col-md-4 mb-4">
         <div class="card bg-indigo text-white h-100" style="background: #6610f2;">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -72,15 +72,31 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6 mb-4">
+    <div class="col-md-4 mb-4">
         <div class="card bg-teal text-white h-100" style="background: #20c997;">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-1">Total Anggota Terdata</h6>
-                        <h2 class="mb-0">{{ number_format($stats['total_members']) }} Anggota</h2>
+                        <h2 class="mb-0">{{ number_format($stats['total_members']) }}</h2>
                     </div>
                     <i class="fas fa-id-card fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Manajemen LPK</h6>
+                        <h4 class="mb-0">LPK & Keuangan</h4>
+                    </div>
+                    <i class="fas fa-balance-scale fa-3x opacity-50"></i>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ route('admin.lpk.landingpage') }}" class="btn btn-sm btn-light">Kelola LPK</a>
                 </div>
             </div>
         </div>

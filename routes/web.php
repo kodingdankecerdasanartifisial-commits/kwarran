@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/berita', [PostController::class, 'index'])->name('posts.index');
 Route::get('/berita/{post:slug}', [PostController::class, 'show'])->name('posts.show');
-Route::get('/kategori/{slug}', [App\Http\Controllers\CategoryController::class, 'show'])->name('categories.show');
+Route::get('/kategori/{category:slug}', [App\Http\Controllers\CategoryController::class, 'show'])->name('categories.show');
 Route::get('/agenda', [App\Http\Controllers\AgendaController::class, 'index'])->name('agenda.index');
 Route::get('/agenda/feed', [App\Http\Controllers\AgendaController::class, 'getEvents'])->name('agenda.feed');
 Route::get('/download', [App\Http\Controllers\DownloadController::class, 'index'])->name('downloads.index');
@@ -22,6 +22,8 @@ Route::get('/statistik/{slug}', [\App\Http\Controllers\Admin\StatisticsControlle
 Route::get('/transparansi', [\App\Http\Controllers\Admin\FinanceController::class, 'publicIndex'])->name('finances.public');
 Route::get('/dokumen', [\App\Http\Controllers\Admin\DocumentController::class, 'publicIndex'])->name('documents.public.index');
 Route::get('/dokumen/{slug}', [\App\Http\Controllers\Admin\DocumentController::class, 'publicShow'])->name('documents.public.show');
+Route::get('/buletin', [\App\Http\Controllers\BulletinController::class, 'index'])->name('bulletins.public');
+Route::get('/buletin/{bulletin:slug}', [\App\Http\Controllers\BulletinController::class, 'show'])->name('bulletins.show');
 Route::get('/struktur-organisasi', function() {
     $members = \App\Models\OrganizationMember::orderBy('sort_order')->get();
     return view('pages.organization', compact('members'));
@@ -82,6 +84,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::resource('sliders', SliderController::class);
     });
 
+    Route::middleware('permission:bulletins')->group(function() {
+        Route::resource('bulletins', \App\Http\Controllers\Admin\BulletinController::class)->names([
+            'index' => 'bulletins.index',
+            'create' => 'bulletins.create',
+            'store' => 'bulletins.store',
+            'edit' => 'bulletins.edit',
+            'update' => 'bulletins.update',
+            'destroy' => 'bulletins.destroy',
+        ]);
+    });
+
     Route::middleware('permission:events')->group(function() {
         Route::resource('events', \App\Http\Controllers\Admin\EventController::class);
     });
@@ -115,9 +128,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::resource('organization', \App\Http\Controllers\Admin\OrganizationMemberController::class);
     });
 
-    Route::middleware('permission:finances')->group(function() {
-        Route::get('finances/calendar', [\App\Http\Controllers\Admin\FinanceController::class, 'calendar'])->name('finances.calendar');
+    // LPK Management (Termasuk Keuangan)
+    Route::middleware('permission:lpk')->group(function() {
+        Route::get('lpk', [\App\Http\Controllers\Admin\LpkController::class, 'dashboard']);
+        Route::get('lpk/dashboard', [\App\Http\Controllers\Admin\LpkController::class, 'dashboard'])->name('lpk.dashboard');
+        Route::get('lpk/landingpage', [\App\Http\Controllers\Admin\LpkController::class, 'landingPage'])->name('lpk.landingpage');
+        Route::post('lpk/landingpage', [\App\Http\Controllers\Admin\LpkController::class, 'updateLandingPage'])->name('lpk.landingpage.update');
+        Route::resource('lpk/agendas', \App\Http\Controllers\Admin\LpkAgendaController::class, ['names' => 'lpk.agendas']);
+        Route::get('lpk/posts', [\App\Http\Controllers\Admin\LpkController::class, 'posts'])->name('lpk.posts');
+        
+        // Keuangan dipindahkan ke bawah LPK
+        Route::get('lpk/finances/calendar', [\App\Http\Controllers\Admin\FinanceController::class, 'calendar'])->name('lpk.finances.calendar');
+        Route::resource('lpk/finances', \App\Http\Controllers\Admin\FinanceController::class, ['names' => 'lpk.finances']);
+
+        // WORKAROUND: Alias untuk route lama agar view keuangan tidak error.
+        // Ini diperlukan karena view 'admin.finances.index' kemungkinan masih menggunakan route('admin.finances.*')
+        Route::get('/finances/calendar', [\App\Http\Controllers\Admin\FinanceController::class, 'calendar'])->name('finances.calendar');
         Route::resource('finances', \App\Http\Controllers\Admin\FinanceController::class);
+
     });
 
     Route::middleware('permission:sisran')->group(function() {
@@ -138,6 +166,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('menus/update-order', [\App\Http\Controllers\Admin\MenuController::class, 'updateOrder'])->name('menus.update-order');
         Route::resource('menus', \App\Http\Controllers\Admin\MenuController::class)->except(['show']);
         Route::resource('sidebar-widgets', \App\Http\Controllers\Admin\SidebarWidgetController::class)->except(['show']);
+        Route::resource('digital-banners', \App\Http\Controllers\Admin\DigitalBannerController::class);
     });
 
     // Gudep Management (accessible by admin OR users with 'gudep' permission)
@@ -170,6 +199,9 @@ Route::get('/gudep/{slug}', [\App\Http\Controllers\GudepController::class, 'show
 // DKR Public Landing Page
 Route::get('/dkr', [\App\Http\Controllers\DkrController::class, 'index'])->name('dkr.index');
 Route::get('/dkr/album/{slug}', [\App\Http\Controllers\DkrController::class, 'showAlbum'])->name('dkr.album.show');
+
+// LPK Public Landing Page
+Route::get('/lpk', [\App\Http\Controllers\LpkController::class, 'index'])->name('lpk.index');
 
 // SISRAN Public Routes
 Route::get('/sisran/isi/{slug}', [\App\Http\Controllers\SisranPublicController::class, 'showForm'])->name('sisran.public.form');

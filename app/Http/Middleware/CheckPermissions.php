@@ -19,7 +19,14 @@ class CheckPermissions
         $hasAccess = false;
 
         foreach ($permissionArray as $perm) {
-            if ($request->user() && $request->user()->hasPermission(trim($perm))) {
+            $perm = trim($perm);
+            if ($request->user() && ($request->user()->hasPermission($perm) || $request->user()->role === $perm)) {
+                $hasAccess = true;
+                break;
+            }
+
+            // FIX: Izinkan role 'dkr' untuk mengakses halaman dengan permission 'posts'
+            if ($request->user() && $request->user()->role === 'dkr' && $perm === 'posts') {
                 $hasAccess = true;
                 break;
             }

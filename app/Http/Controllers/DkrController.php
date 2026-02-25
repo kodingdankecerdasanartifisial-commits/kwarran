@@ -16,7 +16,7 @@ class DkrController extends Controller
             abort(404, 'DKR page not setup yet.');
         }
 
-        $category = Category::where('name', 'DKR')->first();
+        $category = Category::where('slug', 'dkr')->first();
         $posts = collect();
         if ($category) {
             $posts = Post::where('category_id', $category->id)->where('is_published', true)->latest()->take(6)->get();

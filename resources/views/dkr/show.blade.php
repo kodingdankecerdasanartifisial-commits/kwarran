@@ -13,7 +13,11 @@
             </div>
             <div class="col-lg-10 ps-lg-5 text-center text-lg-start">
                 <h1 class="display-4 fw-bold text-white mb-2 text-uppercase">{{ $dkr->name }}</h1>
-                <p class="lead text-white opacity-90 mb-4 fs-4 border-start border-4 border-warning ps-3">Dewan Kerja Pramuka Penegak dan Pandega Kwartir Ranting Bekasi Timur</p>
+                <p class="lead text-white opacity-90 mb-3 fs-4 border-start border-4 border-warning ps-3">Dewan Kerja Pramuka Penegak dan Pandega Kwartir Ranting Bekasi Timur</p>
+                <div class="text-white mb-4">
+                    <div class="h4 fw-bold mb-1" style="letter-spacing: 1px;">⚜️𝐖𝐚𝐧𝐠𝐛𝐚𝐧𝐠 𝐖𝐢𝐫𝐚𝐭𝐚𝐫𝐚 𝐁𝐡𝐚𝐠𝐚𝐬𝐚𝐬𝐢⚜️</div>
+                    <div class="h5 opacity-75">⚜️Masa Bakti 2026-2029⚜️</div>
+                </div>
                 <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
                     @if(!empty($dkr->social_media['instagram']))
                         <a href="{{ $dkr->social_media['instagram'] }}" target="_blank" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm"><i class="fab fa-instagram me-1"></i> Instagram</a>
@@ -306,6 +310,53 @@
                     </div>
                 </div>
             </div>
+
+            @if($dkr->custom_html)
+            <div class="custom-html-block mt-4 overflow-hidden rounded-4 shadow-sm bg-white border">
+                <div class="custom-content-wrapper">
+                    {!! $dkr->custom_html !!}
+                </div>
+            </div>
+            <style>
+                .custom-content-wrapper {
+                    width: 100%;
+                }
+                .custom-content-wrapper img {
+                    display: block;
+                    max-width: 100% !important;
+                    height: auto !important;
+                    border-radius: 8px;
+                    margin: 0 auto;
+                }
+                .custom-content-wrapper iframe {
+                    width: 100% !important;
+                    border: 0;
+                    display: block;
+                }
+                /* Padding otomatis jika isinya adalah text (p, h1-h6) */
+                .custom-content-wrapper > p, 
+                .custom-content-wrapper > h1, 
+                .custom-content-wrapper > h2, 
+                .custom-content-wrapper > h3,
+                .custom-content-wrapper > h4,
+                .custom-content-wrapper > h5,
+                .custom-content-wrapper > h6,
+                .custom-content-wrapper > ul,
+                .custom-content-wrapper > ol {
+                    padding-left: 1.25rem;
+                    padding-right: 1.25rem;
+                    margin-top: 1rem;
+                }
+                .custom-content-wrapper > *:first-child { margin-top: 1.25rem; }
+                .custom-content-wrapper > *:last-child { margin-bottom: 1.25rem; }
+                
+                /* Jika isinya hanya satu gambar tanpa elemen lain, hilangkan padding agar pas ke pinggir */
+                .custom-content-wrapper > img:only-child {
+                    border-radius: 0;
+                    margin: 0;
+                }
+            </style>
+            @endif
             
             <div class="mt-5 text-center d-none d-lg-block">
                 <img src="{{ asset('logo.png') }}" class="opacity-25" style="max-height: 100px;">

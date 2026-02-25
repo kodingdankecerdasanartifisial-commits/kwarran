@@ -44,7 +44,11 @@ class UserController extends Controller
         if ($validated['role'] === 'operator_gudep') {
             $permissions = ['gudep'];
         } elseif ($validated['role'] === 'dkr') {
-            $permissions = ['dkr'];
+            $permissions = ['dkr', 'posts'];
+        } elseif ($validated['role'] === 'lpk') {
+            $permissions = ['lpk'];
+        } elseif ($validated['role'] === 'admin') {
+            $permissions = array_unique(array_merge($permissions ?? [], ['lpk']));
         }
 
         \App\Models\User::create([
@@ -52,7 +56,7 @@ class UserController extends Controller
             'email'       => $validated['email'],
             'password'    => \Illuminate\Support\Facades\Hash::make($validated['password']),
             'role'        => $validated['role'],
-            'is_admin'    => ($validated['role'] === 'admin'),
+            'is_admin'    => in_array($validated['role'], ['admin', 'dkr']),
             'permissions' => $permissions,
         ]);
 
@@ -87,14 +91,18 @@ class UserController extends Controller
         if ($validated['role'] === 'operator_gudep') {
             $permissions = ['gudep'];
         } elseif ($validated['role'] === 'dkr') {
-            $permissions = ['dkr'];
+            $permissions = ['dkr', 'posts'];
+        } elseif ($validated['role'] === 'lpk') {
+            $permissions = ['lpk'];
+        } elseif ($validated['role'] === 'admin') {
+            $permissions = array_unique(array_merge($permissions ?? [], ['lpk']));
         }
 
         $data = [
             'name'        => $validated['name'],
             'email'       => $validated['email'],
             'role'        => $validated['role'],
-            'is_admin'    => ($validated['role'] === 'admin'),
+            'is_admin'    => in_array($validated['role'], ['admin', 'dkr']),
             'permissions' => $permissions,
         ];
 

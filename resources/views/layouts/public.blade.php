@@ -564,6 +564,7 @@
                         </li>
 
                         <li class="nav-item"><a class="nav-link" href="{{ route('downloads.index') }}">Download</a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('bulletins.*') ? 'active' : '' }}" href="{{ route('bulletins.public') }}">Buletin</a></li>
                     @endforelse
                     
                     {{-- Social Icons for Mobile Menu --}}

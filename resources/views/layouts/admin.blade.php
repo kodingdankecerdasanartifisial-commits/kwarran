@@ -131,6 +131,46 @@
                     </div>
                     @endif
 
+                    <!-- LPK Management -->
+                    @if($user->hasPermission('lpk'))
+                    <div class="nav-item">
+                        <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/lpk*') ? 'active' : 'collapsed' }}" 
+                           data-bs-toggle="collapse" href="#lpkCollapse">
+                            <span><i class="fas fa-balance-scale text-success"></i> Manajemen LPK</span>
+                            <i class="fas fa-chevron-down small transition"></i>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('admin.lpk.*') ? 'show' : '' }}" id="lpkCollapse" data-bs-parent="#sidebarNav">
+                            <ul class="nav flex-column bg-dark bg-opacity-10 ms-3 border-start border-secondary border-opacity-25">
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->routeIs('admin.lpk.landingpage') ? 'active' : '' }}" href="{{ route('admin.lpk.landingpage') }}">
+                                        <i class="fas fa-home me-2"></i> Landing Page
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->routeIs('admin.lpk.agendas.*') ? 'active' : '' }}" href="{{ route('admin.lpk.agendas.index') }}">
+                                        <i class="fas fa-calendar-alt me-2"></i> Agenda Kegiatan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->routeIs('admin.lpk.posts') ? 'active' : '' }}" href="{{ route('admin.lpk.posts') }}">
+                                        <i class="fas fa-newspaper me-2"></i> Berita / Posts
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->routeIs('admin.lpk.finances.index', 'admin.lpk.finances.edit') ? 'active' : '' }}" href="{{ route('admin.lpk.finances.index') }}">
+                                        <i class="fas fa-file-invoice-dollar me-2"></i> Laporan Keuangan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2" href="{{ route('admin.posts.create', ['category_id' => \App\Models\Category::where('name', 'LPK')->first()?->id]) }}">
+                                        <i class="fas fa-plus-circle me-2"></i> Tambah Berita LPK
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Group: Publikasi -->
                     @if($user->hasPermission('posts') || $user->hasPermission('sliders') || $user->hasPermission('events') || $user->hasPermission('gallery'))
                     <div class="nav-item">
@@ -157,6 +197,8 @@
                                 @if($user->hasPermission('gallery'))
                                 <a class="nav-link py-2 {{ request()->is('admin/gallery*') ? 'active' : '' }}" href="{{ route('admin.gallery.index') }}">Galeri Foto/Video</a>
                                 @endif
+
+                                <a class="nav-link py-2 {{ request()->is('admin/bulletins*') ? 'active' : '' }}" href="{{ route('admin.bulletins.index') }}">Buletin Digital</a>
                             </div>
                         </div>
                     </div>
@@ -202,6 +244,7 @@
                                 <a class="nav-link py-2 {{ request()->is('admin/menus*') ? 'active' : '' }}" href="{{ route('admin.menus.index') }}">Menu Navigasi</a>
                                 <a class="nav-link py-2 {{ request()->is('admin/sidebar-widgets*') ? 'active' : '' }}" href="{{ route('admin.sidebar-widgets.index') }}">Sidebar Widgets</a>
                                 <a class="nav-link py-2 {{ request()->is('admin/categories*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">Kategori Berita</a>
+                                <a class="nav-link py-2 {{ request()->is('admin/digital-banners*') ? 'active' : '' }}" href="{{ route('admin.digital-banners.index') }}">Spanduk Digital</a>
                             </div>
                         </div>
                     </div>
@@ -252,24 +295,18 @@
                     </div>
                     @endif
 
-                    <!-- Group: Administrasi & Keuangan -->
-                    @if($user->role === 'admin' || $user->hasPermission('finances'))
+                    <!-- Group: Administrasi -->
+                    @if($user->role === 'admin')
                     <div class="nav-item">
-                        <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/users*', 'admin/settings*', 'admin/finances*') ? 'active' : 'collapsed' }}" 
+                        <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/users*', 'admin/settings*') ? 'active' : 'collapsed' }}" 
                            data-bs-toggle="collapse" href="#collapseAdmin">
                             <span><i class="fas fa-user-shield"></i> Administrasi</span>
                             <i class="fas fa-chevron-down small transition"></i>
                         </a>
-                        <div class="collapse {{ request()->is('admin/users*', 'admin/settings*', 'admin/finances*') ? 'show' : '' }}" id="collapseAdmin" data-bs-parent="#sidebarNav">
+                        <div class="collapse {{ request()->is('admin/users*', 'admin/settings*') ? 'show' : '' }}" id="collapseAdmin" data-bs-parent="#sidebarNav">
                             <div class="nav flex-column bg-dark bg-opacity-10 ms-3 border-start border-secondary border-opacity-25">
-                                @if($user->role === 'admin')
                                 <a class="nav-link py-2 {{ request()->is('admin/users*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">Manajemen User</a>
                                 <a class="nav-link py-2 {{ request()->is('admin/settings*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">Pengaturan Web</a>
-                                @endif
-                                
-                                @if($user->hasPermission('finances'))
-                                <a class="nav-link py-2 {{ request()->is('admin/finances*') ? 'active' : '' }}" href="{{ route('admin.finances.index') }}">Laporan Keuangan</a>
-                                @endif
                             </div>
                         </div>
                     </div>

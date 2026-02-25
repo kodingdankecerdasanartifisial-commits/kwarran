@@ -26,6 +26,7 @@ class Dkr extends Model
         'gallery',
         'videos',
         'achievements',
+        'custom_html',
         'is_active',
     ];
 

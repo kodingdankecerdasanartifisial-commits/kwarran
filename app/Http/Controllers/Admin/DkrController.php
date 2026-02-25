@@ -49,6 +49,7 @@ class DkrController extends Controller
             'gallery' => 'nullable|array',
             'videos' => 'nullable|array',
             'achievements' => 'nullable|array',
+            'custom_html' => 'nullable',
         ]);
 
         $validated['active_members_count'] = $validated['active_members_count'] ?? 0;

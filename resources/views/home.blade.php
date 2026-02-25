@@ -4,11 +4,11 @@
 
 @section('content')
 <!-- Hero Slideshow -->
-<section class="hero-slider-section pt-4">
+<section class="hero-slider-section pt-1">
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <div class="swiper main-slider rounded-4 shadow-sm overflow-hidden">
+                <div class="swiper main-slider shadow-sm overflow-hidden">
                     <div class="swiper-wrapper">
                         @forelse($sliders as $slider)
                         <div class="swiper-slide">
@@ -64,9 +64,10 @@
         background-color: #f8f9fa;
     }
     .main-slider {
-        height: 450px; /* Reduced fixed height */
+        height: 550px; /* Adjusted height */
         width: 100%;
         position: relative;
+        border-radius: 5px; /* Adjusted curvature */
     }
     .slider-bg {
         position: absolute;
@@ -102,26 +103,26 @@
     }
     
     @media (max-width: 768px) {
-        .main-slider { height: 250px; }
+        .main-slider { height: 280px; border-radius: 5px; }
         .display-5 { font-size: 1.8rem; }
     }
 </style>
 
 <!-- Newsflash Section -->
-<div class="newsflash-section py-2 bg-white border-bottom shadow-sm mb-4">
+<div class="newsflash-section py-1 bg-white text-dark mb-4 shadow-sm">
     <div class="container">
         <div class="row align-items-center g-0">
             <div class="col-auto">
-                <div class="newsflash-label px-3 py-1 rounded-2 fw-bold text-uppercase small me-3" style="background-color: var(--primary-color); color: var(--secondary-color);">
-                    <i class="fas fa-bolt me-1"></i> Terkini
+                <div class="newsflash-label px-3 py-2 fw-bold text-uppercase small me-3 position-relative" style="background-color: var(--accent-color, #f39c12); color: #f7f0f0;">
+                    <i class="fas fa-bullhorn me-2"></i> INFO TERBARU
                 </div>
             </div>
             <div class="col overflow-hidden">
                 <div class="newsflash-wrapper">
-                    <marquee onmouseover="this.stop();" onmouseout="this.start();" scrollamount="5">
+                    <marquee direction="down" height="25" onmouseover="this.stop();" onmouseout="this.start();" scrollamount="2" style="line-height: 25px;">
                         @foreach($latestPosts as $post)
-                            <a href="{{ route('posts.show', $post->slug) }}" class="text-decoration-none text-dark me-5 small fw-medium hover-primary">
-                                <span class="text-muted">{{ $post->published_at?->format('H:i') }}</span> — {{ $post->title }}
+                            <a href="{{ route('posts.show', $post->slug) }}" class="text-decoration-none text-dark d-block small fw-medium hover-opacity">
+                                <span class="badge bg-secondary me-2" style="font-size: 0.7rem;">{{ $post->published_at?->format('d/m') }}</span> {{ $post->title }}
                             </a>
                         @endforeach
                     </marquee>
@@ -137,10 +138,48 @@
         z-index: 10;
         margin-top: 0;
     }
-    .hover-primary:hover {
-        color: var(--primary-color) !important;
+    .hover-opacity:hover {
+        opacity: 0.8;
+    }
+    .newsflash-label {
+        clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
+        padding-right: 1.5rem !important;
+    }
+
+    /* Digital Banner Styling */
+    .digital-banner-section .banner-wrapper {
+        width: 100%;
+        overflow: hidden;
+    }
+    .digital-banner-section .banner-img {
+        width: 100%;
+        height: auto;
+        display: block;
     }
 </style>
+
+<!-- Digital Banner Section -->
+@if($digitalBanners->count() > 0)
+<section class="digital-banner-section mb-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                @foreach($digitalBanners as $banner)
+                <div class="banner-wrapper shadow-sm mb-3">
+                    @if($banner->link)
+                        <a href="{{ $banner->link }}" target="_blank">
+                            <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->title }}" class="banner-img">
+                        </a>
+                    @else
+                        <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->title }}" class="banner-img">
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</section>
+@endif
 
 <div class="container my-5">
     <div class="row">
@@ -319,4 +358,3 @@
         </div>
     </div>
 @endsection
-

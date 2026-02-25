@@ -48,16 +48,23 @@
 
                     <div id="photoFields">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Upload Foto (Bisa banyak sekaligus)</label>
-                            <input type="file" name="images[]" class="form-control @error('images.*') is-invalid @enderror" multiple accept="image/*">
-                            @error('images.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            <small class="text-muted">Foto akan otomatis dikompresi untuk menghemat ruang server.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">ATAU Link Google Drive/Photos</label>
-                            <input type="url" name="external_link" class="form-control @error('external_link') is-invalid @enderror" value="{{ old('external_link') }}" placeholder="https://photos.google.com/share/...">
-                            @error('external_link')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            <small class="text-muted">Gunakan ini jika ingin menghemat penyimpanan server sepenuhnya.</small>
+                            <label class="form-label fw-bold">Pilih Metode:</label>
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold small">1. Upload File Langsung (Bisa banyak)</label>
+                                        <input type="file" name="images[]" class="form-control @error('images.*') is-invalid @enderror" multiple accept="image/*">
+                                        <small class="text-muted">Gunakan ini jika ingin menyimpan foto di server.</small>
+                                    </div>
+                                    <div class="text-center my-2"><span class="badge bg-secondary">ATAU</span></div>
+                                    <div class="mb-0">
+                                        <label class="form-label fw-semibold small">2. Link Google Drive / Album Luar + Cover</label>
+                                        <input type="url" name="external_link" class="form-control mb-2" value="{{ old('external_link') }}" placeholder="https://photos.google.com/share/...">
+                                        <input type="file" name="image" class="form-control" accept="image/*">
+                                        <small class="text-muted text-xs">Masukkan link album dan unggah 1 foto sebagai sampul (cover).</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
