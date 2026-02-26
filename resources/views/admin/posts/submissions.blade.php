@@ -24,7 +24,13 @@
                     <tr>
                         <td>{{ $post->title }}</td>
                         <td>{{ $post->submitter_name ?? $post->author }}</td>
-                        <td>{{ $post->category?->name }}</td>
+                        <td>
+                            @forelse($post->categories as $category)
+                                <span class="badge bg-secondary mb-1 small">{{ $category->name }}</span>
+                            @empty
+                                <span class="text-muted">-</span>
+                            @endforelse
+                        </td>
                         <td>{{ $post->created_at->format('d/m/Y H:i') }}</td>
                         <td class="text-end">
                             <a href="{{ route('admin.posts.edit', $post->id) }}" class="btn btn-sm btn-outline-primary">Tinjau & Edit</a>

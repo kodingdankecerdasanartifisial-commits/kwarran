@@ -13,8 +13,8 @@ class Category extends Model
         'description',
     ];
 
-    public function posts(): HasMany
+    public function posts(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->hasMany(Post::class);
+        return $this->belongsToMany(Post::class);
     }
 }

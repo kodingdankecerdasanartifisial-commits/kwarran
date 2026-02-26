@@ -63,11 +63,11 @@
                             </div>
                         </td>
                         <td>
-                            @if($post->category)
-                                <span class="badge bg-secondary">{{ $post->category->name }}</span>
-                            @else
+                            @forelse($post->categories as $category)
+                                <span class="badge bg-secondary mb-1">{{ $category->name }}</span>
+                            @empty
                                 <span class="text-muted">-</span>
-                            @endif
+                            @endforelse
                         </td>
 
                         <td>

@@ -32,6 +32,11 @@ class Post extends Model
         'is_approved' => 'boolean',
     ];
 
+    public function categories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

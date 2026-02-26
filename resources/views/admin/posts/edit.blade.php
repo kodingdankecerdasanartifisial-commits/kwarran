@@ -36,15 +36,22 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="category_id" class="form-label fw-bold">Kategori</label>
-                        <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
-                            <option value="">Pilih Kategori</option>
+                        <label class="form-label fw-bold">Kategori</label>
+                        <div class="category-list p-3 border rounded shadow-sm bg-light" style="max-height: 200px; overflow-y: auto;">
+                            @php
+                                $currentCategoryIds = $post->categories->pluck('id')->toArray();
+                            @endphp
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id', $post->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="category_ids[]" value="{{ $category->id }}" id="cat_{{ $category->id }}" {{ (is_array(old('category_ids')) && in_array($category->id, old('category_ids'))) || (!old('category_ids') && in_array($category->id, $currentCategoryIds)) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="cat_{{ $category->id }}">
+                                        {{ $category->name }}
+                                    </label>
+                                </div>
                             @endforeach
-                        </select>
-                        @error('category_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        </div>
+                        @error('category_ids')
+                            <div class="text-danger small">{{ $message }}</div>
                         @enderror
                     </div>
 

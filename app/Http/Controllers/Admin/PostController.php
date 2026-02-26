@@ -14,7 +14,7 @@ class PostController extends Controller
     {
         $categories = Category::orderBy('name')->get();
 
-        $query = Post::with('category')->orderBy('created_at', 'desc');
+        $query = Post::with('categories')->orderBy('created_at', 'desc');
 
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
@@ -30,7 +30,7 @@ class PostController extends Controller
 
     public function submissions()
     {
-        $posts = Post::with('category')->where('submitted_via', 'public')->orderBy('created_at', 'desc')->paginate(10);
+        $posts = Post::with('categories')->where('submitted_via', 'public')->orderBy('created_at', 'desc')->paginate(10);
         return view('admin.posts.submissions', compact('posts'));
     }
 
@@ -43,7 +43,7 @@ class PostController extends Controller
         $categories = Category::orderBy('name')->get();
         
         // Materi are posts that have either a PDF or a YouTube link
-        $query = Post::with('category')->where(function($q) {
+        $query = Post::with('categories')->where(function($q) {
             $q->whereNotNull('material_pdf')
               ->orWhereNotNull('youtube_url');
         })->orderBy('created_at', 'desc');
@@ -91,13 +91,17 @@ class PostController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'category_id' => 'required|exists:categories,id',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id',
             'content' => 'required',
             'excerpt' => 'nullable|max:500',
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'material_pdf' => 'nullable|file|mimes:pdf|max:5120',
             'youtube_url' => 'nullable|url',
         ]);
+
+        // For backward compatibility, set category_id to the first selected category
+        $validated['category_id'] = $request->category_ids[0];
 
         // Generate SEO friendly slug
         $slug = Str::slug($request->title);
@@ -129,6 +133,9 @@ class PostController extends Controller
 
         $post = Post::create($validated);
         
+        // Sync multiple categories
+        $post->categories()->sync($request->category_ids);
+        
         $type = $request->input('post_type');
         $redirectRoute = ($type === 'materi') ? route('admin.posts.materi') : route('admin.posts.index');
         
@@ -143,6 +150,11 @@ class PostController extends Controller
         return redirect($redirectRoute)->with('success', $message);
     }
 
+    public function show(Post $post)
+    {
+        return redirect()->route('posts.show', $post->slug);
+    }
+
     public function edit(Post $post)
     {
         $categories = Category::all();
@@ -153,13 +165,17 @@ class PostController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'category_id' => 'required|exists:categories,id',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id',
             'content' => 'required',
             'excerpt' => 'nullable|max:500',
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,max:2048',
             'material_pdf' => 'nullable|file|mimes:pdf|max:5120',
             'youtube_url' => 'nullable|url',
         ]);
+
+        // For backward compatibility
+        $post->category_id = $request->category_ids[0];
 
         // Optional: Regenerate slug if title changes (optional, but good for SEO in early stages)
         if ($post->title !== $request->title) {
@@ -201,10 +217,12 @@ class PostController extends Controller
         $post->youtube_url = $request->youtube_url;
 
         $post->title = $validated['title'];
-        $post->category_id = $validated['category_id'];
         $post->content = $validated['content'];
         $post->excerpt = $validated['excerpt'];
         $post->save();
+
+        // Sync multiple categories
+        $post->categories()->sync($request->category_ids);
 
         $redirectRoute = route('admin.posts.index');
         $dkrCategory = Category::where('name', 'DKR')->first();
