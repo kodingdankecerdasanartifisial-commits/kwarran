@@ -56,10 +56,10 @@
                     <div id="post-content-container">
                         @if($post->is_html)
                             <!-- High Performance Isolated Iframe: Maximum Full-Page feeling while maintaining layout safety -->
-                            <div class="post-iframe-wrapper" style="position: relative; width: 100%; min-height: 1500px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid #eee;">
+                            <div class="post-iframe-wrapper" style="position: relative; width: 100%; min-height: 1650px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid #eee;">
                                 <iframe 
                                     id="post-html-iframe" 
-                                    style="width: 100%; border: none; overflow: hidden; display: block; height: 1500px; transition: height 0.3s ease-out;" 
+                                    style="width: 100%; border: none; overflow: hidden; display: block; height: 1650px; transition: height 0.3s ease-out;" 
                                     scrolling="no"
                                     allowfullscreen
                                 ></iframe>
@@ -119,8 +119,8 @@
                                     if (event.data.type === 'resize-html' && event.data.height) {
                                         const iframe = document.getElementById('post-html-iframe');
                                         if (iframe) {
-                                            // Respect 1500px minimum or expand if content is larger
-                                            const finalHeight = Math.max(event.data.height + 50, 1500);
+                                            // Respect 1650px minimum or expand if content is larger
+                                            const finalHeight = Math.max(event.data.height + 50, 1650);
                                             iframe.style.height = finalHeight + 'px';
                                         }
                                     }
