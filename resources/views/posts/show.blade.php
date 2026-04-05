@@ -91,41 +91,45 @@
                         @endif
 
                     @if($post->is_html)
-                        <!-- Native Scoped Rendering: Provides native feel like reference site while protecting outer layout -->
-                        <div id="post-content-native" class="post-content-native-wrapper">
-                            {!! $post->content !!}
-                        </div>
+                        <!-- Shadow DOM Rendering: Perfect isolation with native layout feel -->
+                        <div id="post-content-shadow-wrapper"></div>
                         
                         <script>
                             (function() {
-                                // Auto-scope styles to prevent header/footer breakage
-                                const wrapper = document.getElementById('post-content-native');
+                                const wrapper = document.getElementById('post-content-shadow-wrapper');
                                 if (!wrapper) return;
                                 
-                                const styles = wrapper.querySelectorAll('style');
-                                styles.forEach(styleTag => {
-                                    const css = styleTag.innerHTML;
-                                    // Basic regex to prefix selectors that don't already start with the wrapper ID
-                                    // This is a safety measure to prevent leakage to header/footer
-                                    const scopedCss = css.replace(/(^|[^},]+)([^{]+)({)/g, (match, p1, p2, p3) => {
-                                        const selectors = p2.split(',').map(s => {
-                                            const trimmed = s.trim();
-                                            if (trimmed.startsWith('@') || trimmed.startsWith(':root')) return trimmed;
-                                            return '#post-content-native ' + trimmed;
-                                        }).join(', ');
-                                        return p1 + selectors + ' ' + p3;
-                                    });
-                                    styleTag.innerHTML = scopedCss;
+                                // Create shadow root
+                                const shadow = wrapper.attachShadow({ mode: 'open' });
+                                
+                                // Add site-wide essential styles to shadow DOM (optional but recommended for consistency)
+                                const siteStyles = `
+                                    :host { 
+                                        display: block; 
+                                        width: 100%; 
+                                        font-family: inherit;
+                                        line-height: inherit;
+                                        color: inherit;
+                                    }
+                                    * { max-width: 100%; box-sizing: border-box; }
+                                    img { height: auto; }
+                                `;
+                                
+                                const content = {!! json_encode($post->content) !!};
+                                
+                                shadow.innerHTML = '<style>' + siteStyles + '</style>' + content;
+                                
+                                // Handle any scripts inside the content to make them run in the shadow context
+                                // (Note: Shadow DOM scripts run normally but this is just a helper for deep interactivity)
+                                const scripts = shadow.querySelectorAll('script');
+                                scripts.forEach(oldScript => {
+                                    const newScript = document.createElement('script');
+                                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                                    oldScript.parentNode.replaceChild(newScript, oldScript);
                                 });
                             })();
                         </script>
-                        <style>
-                            .post-content-native-wrapper {
-                                position: relative;
-                                width: 100%;
-                                clear: both;
-                            }
-                        </style>
                     @else
                         <!-- Standard Sandbox Iframe for isolated Rich Text content -->
                         <div class="post-sandbox-wrapper" style="position: relative; width: 100%;">
