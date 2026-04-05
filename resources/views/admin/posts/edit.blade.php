@@ -143,9 +143,29 @@
 @section('scripts')
 <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <script>
-    CKEDITOR.replace('content', {
-        height: 500,
-        versionCheck: false
+    let editor;
+    const isHtmlCheckbox = document.getElementById('is_html');
+    
+    function initEditor() {
+        if (!isHtmlCheckbox.checked) {
+            editor = CKEDITOR.replace('content', {
+                height: 500,
+                versionCheck: false
+            });
+        }
+    }
+
+    initEditor();
+
+    isHtmlCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            if (editor) {
+                editor.destroy();
+                editor = null;
+            }
+        } else {
+            initEditor();
+        }
     });
 </script>
 @endsection
