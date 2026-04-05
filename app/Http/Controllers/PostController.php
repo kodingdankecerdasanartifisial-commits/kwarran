@@ -9,12 +9,17 @@ class PostController extends Controller
 {
     public function index()
     {
-        $posts = Post::with('category')
+        $posts = Post::whereHas('categories', function($q) {
+                $q->where('type', 'post');
+            })
             ->where('is_published', true)
             ->orderBy('published_at', 'desc')
             ->paginate(10);
         
-        $featuredPost = Post::where('is_published', true)
+        $featuredPost = Post::whereHas('categories', function($q) {
+                $q->where('type', 'post');
+            })
+            ->where('is_published', true)
             ->whereNotNull('featured_image')
             ->orderBy('published_at', 'desc')
             ->first();
@@ -22,6 +27,23 @@ class PostController extends Controller
         return view('posts.index', [
             'posts' => $posts,
             'featuredPost' => $featuredPost,
+            'title' => 'Berita Terbaru'
+        ]);
+    }
+
+    public function materiIndex()
+    {
+        $posts = Post::whereHas('categories', function($q) {
+                $q->where('type', 'materi');
+            })
+            ->where('is_published', true)
+            ->orderBy('published_at', 'desc')
+            ->paginate(12);
+
+        return view('posts.index', [
+            'posts' => $posts,
+            'featuredPost' => null,
+            'title' => 'Materi Pembelajaran'
         ]);
     }
     

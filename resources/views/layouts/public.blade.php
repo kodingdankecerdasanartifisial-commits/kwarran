@@ -331,7 +331,7 @@
                                             <div class="col-md-4">
                                                 <h6 class="text-uppercase fw-bold text-primary mb-3">Materi Belajar</h6>
                                                 <ul class="list-unstyled">
-                                                    @foreach(\App\Models\Category::where('name', 'like', 'Materi%')->get() as $cat)
+                                                    @foreach(\App\Models\Category::where('type', 'materi')->get() as $cat)
                                                     <li class="mb-2"><a href="{{ route('categories.show', $cat->slug) }}" class="text-decoration-none text-dark hover-primary">{{ $cat->name }}</a></li>
                                                     @endforeach
                                                 </ul>
@@ -339,24 +339,18 @@
                                             <div class="col-md-8">
                                                 <h6 class="text-uppercase fw-bold text-primary mb-3">Materi Terbaru</h6>
                                                 <div class="row">
-                                                    @foreach(\App\Models\Post::whereHas('category', function($q){ $q->where('name', 'like', 'Materi%'); })->latest()->take(2)->get() as $latest)
+                                                    @foreach(\App\Models\Post::whereHas('categories', function($q){ $q->where('type', 'materi'); })->latest()->take(2)->get() as $latest)
                                                     <div class="col-6">
                                                         <div class="card border-0 shadow-sm h-100">
-                                                            @if($latest->featured_image)
-                                                                <img src="{{ asset('storage/' . $latest->featured_image) }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                            @elseif($latest->youtube_url)
-                                                                @php
-                                                                    preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $latest->youtube_url, $matches);
-                                                                    $thumb = isset($matches[1]) ? "https://img.youtube.com/vi/{$matches[1]}/mqdefault.jpg" : null;
-                                                                @endphp
-                                                                @if($thumb)
-                                                                    <img src="{{ $thumb }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                                    <div class="position-absolute top-50 start-50 translate-middle"><i class="fab fa-youtube text-danger fa-2x bg-white rounded-circle p-1"></i></div>
-                                                                @else
-                                                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-image text-muted"></i></div>
+                                                            @if($latest->thumbnail_url)
+                                                                <img src="{{ $latest->thumbnail_url }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
+                                                                @if(!$latest->featured_image && $latest->youtube_url)
+                                                                <div class="position-absolute top-50 start-50 translate-middle"><i class="fab fa-youtube text-danger fa-2x bg-white rounded-circle p-1"></i></div>
                                                                 @endif
                                                             @else
-                                                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-file-pdf text-danger fa-2x"></i></div>
+                                                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                                                                    <i class="fas fa-image text-muted"></i>
+                                                                </div>
                                                             @endif
                                                             <div class="card-body p-2">
                                                                 <h6 class="card-title small fw-bold mb-0">
@@ -397,17 +391,10 @@
                                                     @foreach(\App\Models\Post::whereHas('category', function($q){ $q->where('name', 'not like', 'Materi%'); })->latest()->take(2)->get() as $latest)
                                                     <div class="col-6">
                                                         <div class="card border-0 shadow-sm h-100">
-                                                            @if($latest->featured_image)
-                                                                <img src="{{ asset('storage/' . $latest->featured_image) }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                            @elseif($latest->youtube_url)
-                                                                @php
-                                                                    preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $latest->youtube_url, $matches);
-                                                                    $thumb = isset($matches[1]) ? "https://img.youtube.com/vi/{$matches[1]}/mqdefault.jpg" : null;
-                                                                @endphp
-                                                                @if($thumb)
-                                                                    <img src="{{ $thumb }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                                @else
-                                                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-image text-muted"></i></div>
+                                                            @if($latest->thumbnail_url)
+                                                                <img src="{{ $latest->thumbnail_url }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
+                                                                @if(!$latest->featured_image && $latest->youtube_url)
+                                                                <div class="position-absolute top-50 start-50 translate-middle"><i class="fab fa-youtube text-danger fa-2x bg-white rounded-circle p-1"></i></div>
                                                                 @endif
                                                             @else
                                                                 <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-image text-muted"></i></div>
@@ -479,17 +466,10 @@
                                                 @foreach(\App\Models\Post::whereHas('category', function($q){ $q->where('name', 'not like', 'Materi%'); })->latest()->take(2)->get() as $latest)
                                                 <div class="col-6">
                                                     <div class="card border-0 shadow-sm h-100">
-                                                        @if($latest->featured_image)
-                                                            <img src="{{ asset('storage/' . $latest->featured_image) }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                        @elseif($latest->youtube_url)
-                                                            @php
-                                                                preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $latest->youtube_url, $matches);
-                                                                $thumb = isset($matches[1]) ? "https://img.youtube.com/vi/{$matches[1]}/mqdefault.jpg" : null;
-                                                            @endphp
-                                                            @if($thumb)
-                                                                <img src="{{ $thumb }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                            @else
-                                                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-image text-muted"></i></div>
+                                                        @if($latest->thumbnail_url)
+                                                            <img src="{{ $latest->thumbnail_url }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
+                                                            @if(!$latest->featured_image && $latest->youtube_url)
+                                                            <div class="position-absolute top-50 start-50 translate-middle"><i class="fab fa-youtube text-danger fa-2x bg-white rounded-circle p-1"></i></div>
                                                             @endif
                                                         @else
                                                             <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-image text-muted"></i></div>
@@ -532,21 +512,13 @@
                                                 @foreach(\App\Models\Post::whereHas('category', function($q){ $q->where('name', 'like', 'Materi%'); })->latest()->take(2)->get() as $latest)
                                                 <div class="col-6">
                                                     <div class="card border-0 shadow-sm h-100">
-                                                        @if($latest->featured_image)
-                                                            <img src="{{ asset('storage/' . $latest->featured_image) }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                        @elseif($latest->youtube_url)
-                                                            @php
-                                                                preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $latest->youtube_url, $matches);
-                                                                $thumb = isset($matches[1]) ? "https://img.youtube.com/vi/{$matches[1]}/mqdefault.jpg" : null;
-                                                            @endphp
-                                                            @if($thumb)
-                                                                <img src="{{ $thumb }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
-                                                                <div class="position-absolute top-50 start-50 translate-middle"><i class="fab fa-youtube text-danger fa-2x bg-white rounded-circle p-1"></i></div>
-                                                            @else
-                                                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-image text-muted"></i></div>
+                                                        @if($latest->thumbnail_url)
+                                                            <img src="{{ $latest->thumbnail_url }}" class="card-img-top" alt="{{ $latest->title }}" style="height: 120px; object-fit: cover;">
+                                                            @if(!$latest->featured_image && $latest->youtube_url)
+                                                            <div class="position-absolute top-50 start-50 translate-middle"><i class="fab fa-youtube text-danger fa-2x bg-white rounded-circle p-1"></i></div>
                                                             @endif
                                                         @else
-                                                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-file-pdf text-danger fa-2x"></i></div>
+                                                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;"><i class="fas fa-image text-muted"></i></div>
                                                         @endif
                                                         <div class="card-body p-2 text-start">
                                                             <h6 class="card-title small fw-bold mb-0">

@@ -29,4 +29,40 @@ class Lpk extends Model
         'videos'       => 'array',
         'is_active'    => 'boolean',
     ];
+
+    public function getLogoUrlAttribute()
+    {
+        if ($this->logo) {
+            $localPath = public_path('storage/' . $this->logo);
+            if (file_exists($localPath)) {
+                return asset('storage/' . $this->logo);
+            }
+            return 'https://kwarranbekasitimur.id/storage/' . $this->logo;
+        }
+        return asset('logo.png');
+    }
+
+    public function getHeroImageUrlAttribute()
+    {
+        if ($this->hero_image) {
+            $localPath = public_path('storage/' . $this->hero_image);
+            if (file_exists($localPath)) {
+                return asset('storage/' . $this->hero_image);
+            }
+            return 'https://kwarranbekasitimur.id/storage/' . $this->hero_image;
+        }
+        return 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=1920&auto=format&fit=crop';
+    }
+
+    public static function getMemberPhotoUrl($photo)
+    {
+        if ($photo) {
+            $localPath = public_path('storage/' . $photo);
+            if (file_exists($localPath)) {
+                return asset('storage/' . $photo);
+            }
+            return 'https://kwarranbekasitimur.id/storage/' . $photo;
+        }
+        return null;
+    }
 }

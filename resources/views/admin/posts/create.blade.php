@@ -57,6 +57,30 @@
                         <textarea class="form-control" id="excerpt" name="excerpt" rows="3">{{ old('excerpt') }}</textarea>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="featured_image" class="form-label fw-bold">Gambar Unggulan</label>
+                        <input type="file" class="form-control @error('featured_image') is-invalid @enderror" id="featured_image" name="featured_image" accept="image/jpeg,image/png,image/jpg,image/webp">
+                        <small class="text-muted">Format: JPG, PNG, WEBP. Maks: 2MB.</small>
+                        @error('featured_image')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="youtube_url" class="form-label fw-bold">Link Video YouTube {{ $isMateri ? '' : '(Opsional)' }}</label>
+                        <input type="url" class="form-control @error('youtube_url') is-invalid @enderror" id="youtube_url" name="youtube_url" value="{{ old('youtube_url') }}" placeholder="https://www.youtube.com/watch?v=...">
+                        <small class="text-muted">Masukkan link lengkap video YouTube.</small>
+                        @error('youtube_url')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="embed_code" class="form-label fw-bold">Embed HTML / Multimedia (Opsional)</label>
+                        <textarea class="form-control" id="embed_code" name="embed_code" rows="3" placeholder="Paste embed code (iframe, etc.) here">{{ old('embed_code') }}</textarea>
+                        <small class="text-muted">Gunakan untuk menempelkan kode iframe dari YouTube, Google Drive, atau Peta.</small>
+                    </div>
+
                     @if($isMateri)
                     <div class="mb-3">
                         <label for="material_pdf" class="form-label fw-bold">Lampiran Materi (PDF)</label>
@@ -66,34 +90,17 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-
-                    <div class="mb-3">
-                        <label for="youtube_url" class="form-label fw-bold">Link Video YouTube</label>
-                        <input type="url" class="form-control @error('youtube_url') is-invalid @enderror" id="youtube_url" name="youtube_url" value="{{ old('youtube_url') }}" placeholder="https://www.youtube.com/watch?v=...">
-                        <small class="text-muted">Masukkan link lengkap video YouTube untuk pembelajaran.</small>
-                        @error('youtube_url')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    @else
-                    <div class="mb-3">
-                        <label for="featured_image" class="form-label fw-bold">Gambar Unggulan</label>
-                        <input type="file" class="form-control @error('featured_image') is-invalid @enderror" id="featured_image" name="featured_image" accept="image/*">
-                        <small class="text-muted">Format: JPG, PNG. Maks: 2MB</small>
-                        @error('featured_image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <!-- Optional YouTube for news too -->
-                    <div class="mb-3">
-                        <label for="youtube_url" class="form-label fw-bold">Link Video YouTube (Opsional)</label>
-                        <input type="url" class="form-control" id="youtube_url" name="youtube_url" value="{{ old('youtube_url') }}">
-                    </div>
                     @endif
 
-                    <div class="form-check form-switch mb-4">
+                    <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1" {{ old('is_published') ? 'checked' : '' }}>
-                        <label class="form-check-input-label fw-bold" for="is_published">Terbitkan Langsung</label>
+                        <label class="form-check-label fw-bold" for="is_published">Terbitkan Langsung</label>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" id="is_html" name="is_html" value="1" {{ old('is_html') ? 'checked' : '' }}>
+                        <label class="form-check-label fw-bold" for="is_html">Mode HTML (Custom Code)</label>
+                        <br><small class="text-muted">Aktifkan jika Anda ingin memasukkan HTML, CSS, atau JS secara manual di isi berita.</small>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -108,12 +115,11 @@
 @endsection
 
 @section('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <script>
-    ClassicEditor
-        .create(document.querySelector('#content'))
-        .catch(error => {
-            console.error(error);
-        });
+    CKEDITOR.replace('content', {
+        height: 500,
+        versionCheck: false
+    });
 </script>
 @endsection

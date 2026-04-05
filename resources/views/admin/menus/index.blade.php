@@ -213,10 +213,16 @@
                     _token: "{{ csrf_token() }}"
                 },
                 success: function(response) {
-                    $('#save-status').html('<i class="fas fa-check me-1"></i> Tersimpan').delay(2000).fadeOut();
+                    if (response.success) {
+                        $('#save-status').html('<i class="fas fa-check me-1"></i> Tersimpan').addClass('bg-success').removeClass('bg-danger').delay(2000).fadeOut();
+                    } else {
+                        $('#save-status').html('<i class="fas fa-times me-1"></i> ' + (response.message || 'Gagal')).addClass('bg-danger').removeClass('bg-success');
+                    }
                 },
-                error: function() {
-                    $('#save-status').html('<i class="fas fa-times me-1"></i> Gagal').addClass('bg-danger').removeClass('bg-success');
+                error: function(xhr) {
+                    var msg = 'Gagal';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg += ': ' + xhr.responseJSON.message;
+                    $('#save-status').html('<i class="fas fa-times me-1"></i> ' + msg).addClass('bg-danger').removeClass('bg-success');
                 }
             });
         });

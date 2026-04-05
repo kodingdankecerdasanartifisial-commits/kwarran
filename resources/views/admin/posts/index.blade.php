@@ -40,19 +40,8 @@
                     <tr>
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
-                                @if($post->featured_image)
-                                    <img src="{{ asset('storage/' . $post->featured_image) }}" alt="Img" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                                @elseif($post->youtube_url)
-                                    @php
-                                        // Simple regex to get video ID
-                                        preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $post->youtube_url, $matches);
-                                        $videoId = $matches[1] ?? null;
-                                    @endphp
-                                    @if($videoId)
-                                        <img src="https://img.youtube.com/vi/{{ $videoId }}/default.jpg" alt="YT" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                                    @else
-                                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="fas fa-image text-muted"></i></div>
-                                    @endif
+                                @if($post->thumbnail_url)
+                                    <img src="{{ $post->thumbnail_url }}" alt="Img" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
                                 @else
                                     <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"><i class="fas fa-image text-muted"></i></div>
                                 @endif
@@ -96,6 +85,7 @@
                                 <a href="{{ route('posts.show', $post->slug) }}" class="btn btn-sm btn-outline-info" target="_blank" title="Lihat">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                @if(auth()->user()->role === 'admin' || $post->user_id === auth()->id())
                                 <a href="{{ route('admin.posts.edit', $post->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -106,6 +96,7 @@
                                     @csrf
                                     @method('DELETE')
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

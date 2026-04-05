@@ -21,12 +21,22 @@
                         @enderror
                     </div>
                     <div class="mb-3">
+                        <label for="type" class="form-label fw-bold">Tipe Kategori</label>
+                        <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
+                            <option value="post" {{ old('type', $category->type) == 'post' ? 'selected' : '' }}>Kategori Berita</option>
+                            <option value="materi" {{ old('type', $category->type) == 'materi' ? 'selected' : '' }}>Kategori Materi</option>
+                        </select>
+                        @error('type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
                         <label for="description" class="form-label fw-bold">Deskripsi</label>
                         <textarea class="form-control" id="description" name="description" rows="3">{{ old('description', $category->description) }}</textarea>
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                        <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">Batal</a>
+                        <a href="{{ route('admin.categories.index', ['type' => $category->type]) }}" class="btn btn-outline-secondary">Batal</a>
                     </div>
                 </form>
             </div>

@@ -31,7 +31,7 @@
                                 <div class="mb-3">
                                     <a href="{{ route('posts.show', $post->slug) }}" class="d-block text-decoration-none">
                                         <div class="ratio ratio-16x9 mb-2">
-                                            <img src="{{ $post->featured_image ? asset('storage/' . $post->featured_image) : 'https://via.placeholder.com/300x200' }}" alt="{{ $post->title }}" class="img-fluid rounded object-fit-cover">
+                                            <img src="{{ $post->thumbnail_url ?? 'https://via.placeholder.com/300x200' }}" alt="{{ $post->title }}" class="img-fluid rounded object-fit-cover">
                                         </div>
                                         <h6 class="fw-bold text-dark mb-1">{{ Str::limit($post->title, 80) }}</h6>
                                         <div class="text-muted small">{{ $post->published_at?->format('d M Y') }}</div>
@@ -42,11 +42,16 @@
                                     <ul class="list-unstyled mb-0">
                                 @endif
                             @else
-                                {{-- Other items: Text only --}}
-                                <li class="mb-2">
-                                    <a href="{{ route('posts.show', $post->slug) }}" class="text-decoration-none text-dark d-flex align-items-start">
-                                        <i class="fas fa-angle-right mt-1 me-2 text-warning"></i>
-                                        <span>{{ Str::limit($post->title, 60) }}</span>
+                                {{-- Other items: With small thumbnails --}}
+                                <li class="mb-3">
+                                    <a href="{{ route('posts.show', $post->slug) }}" class="text-decoration-none text-dark d-flex align-items-center">
+                                        <div class="flex-shrink-0" style="width: 70px; height: 50px;">
+                                            <img src="{{ $post->thumbnail_url ?? 'https://via.placeholder.com/70x50' }}" alt="{{ $post->title }}" class="w-100 h-100 rounded object-fit-cover">
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="fw-bold mb-0 small" style="line-height: 1.3;">{{ Str::limit($post->title, 55) }}</h6>
+                                            <small class="text-muted" style="font-size: 0.75rem;">{{ $post->published_at?->format('d M Y') }}</small>
+                                        </div>
                                     </a>
                                 </li>
                             @endif
@@ -116,7 +121,7 @@
                                 <div class="mb-3">
                                     <a href="{{ route('posts.show', $post->slug) }}" class="d-block text-decoration-none">
                                         <div class="ratio ratio-16x9 mb-2">
-                                            <img src="{{ $post->featured_image ? asset('storage/' . $post->featured_image) : 'https://via.placeholder.com/300x200' }}" alt="{{ $post->title }}" class="img-fluid rounded object-fit-cover">
+                                            <img src="{{ $post->thumbnail_url ?? 'https://via.placeholder.com/300x200' }}" alt="{{ $post->title }}" class="img-fluid rounded object-fit-cover">
                                         </div>
                                         <h6 class="fw-bold text-dark mb-1">{{ Str::limit($post->title, 80) }}</h6>
                                         <div class="text-muted small">{{ $post->published_at?->format('d M Y') }}</div>
@@ -127,10 +132,15 @@
                                     <ul class="list-unstyled mb-0">
                                 @endif
                             @else
-                                <li class="mb-2">
-                                    <a href="{{ route('posts.show', $post->slug) }}" class="text-decoration-none text-dark d-flex align-items-start">
-                                        <i class="fas fa-angle-right mt-1 me-2 text-warning"></i>
-                                        <span>{{ Str::limit($post->title, 60) }}</span>
+                                <li class="mb-3">
+                                    <a href="{{ route('posts.show', $post->slug) }}" class="text-decoration-none text-dark d-flex align-items-center">
+                                        <div class="flex-shrink-0" style="width: 70px; height: 50px;">
+                                            <img src="{{ $post->thumbnail_url ?? 'https://via.placeholder.com/70x50' }}" alt="{{ $post->title }}" class="w-100 h-100 rounded object-fit-cover">
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="fw-bold mb-0 small" style="line-height: 1.3;">{{ Str::limit($post->title, 55) }}</h6>
+                                            <small class="text-muted" style="font-size: 0.75rem;">{{ $post->published_at?->format('d M Y') }}</small>
+                                        </div>
                                     </a>
                                 </li>
                             @endif

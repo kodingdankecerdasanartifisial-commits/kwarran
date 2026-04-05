@@ -5,11 +5,11 @@
 @section('content')
 <!-- LPK Hero Section -->
 <section class="lpk-hero mb-5 rounded-4 shadow-lg overflow-hidden position-relative">
-    <div class="hero-overlay" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('{{ $lpk->hero_image ? asset('storage/' . $lpk->hero_image) : 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=1920&auto=format&fit=crop' }}');"></div>
+    <div class="hero-overlay" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('{{ $lpk->hero_image_url }}');"></div>
     <div class="container h-100 position-relative z-1 d-flex align-items-center">
         <div class="row w-100 py-5">
             <div class="col-lg-2 text-center text-lg-start mb-4 mb-lg-0">
-                <img src="{{ $lpk->logo ? asset('storage/' . $lpk->logo) : asset('logo.png') }}" alt="Logo LPK" class="img-fluid bg-white rounded-circle p-2 shadow" style="max-height: 150px; width: 150px; object-fit: contain;">
+                <img src="{{ $lpk->logo_url }}" alt="Logo LPK" class="img-fluid bg-white rounded-circle p-2 shadow" style="max-height: 150px; width: 150px; object-fit: contain;">
             </div>
             <div class="col-lg-10 ps-lg-5 text-center text-lg-start">
                 <h1 class="display-4 fw-bold text-white mb-2 text-uppercase">{{ $lpk->name }}</h1>
@@ -124,8 +124,8 @@
                     @forelse($posts as $post)
                     <div class="col-md-6 mb-4">
                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden post-card-hover">
-                            @if($post->featured_image)
-                                <img src="{{ asset('storage/' . $post->featured_image) }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                            @if($post->thumbnail_url)
+                                <img src="{{ $post->thumbnail_url }}" class="card-img-top" style="height: 180px; object-fit: cover;">
                             @else
                                 <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
                                     <i class="fas fa-image fa-3x text-secondary opacity-25"></i>
@@ -163,7 +163,7 @@
                         <div class="list-group-item border-0 p-3 hover-light transition">
                             <div class="d-flex align-items-center">
                                 @if(!empty($person['photo']))
-                                    <img src="{{ asset('storage/' . $person['photo']) }}" class="rounded shadow-sm me-3" style="width: 50px; height: 65px; object-fit: cover;">
+                                    <img src="{{ \App\Models\Lpk::getMemberPhotoUrl($person['photo']) }}" class="rounded shadow-sm me-3" style="width: 50px; height: 65px; object-fit: cover;">
                                 @else
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center border me-3" style="width: 50px; height: 65px;"><i class="fas fa-user text-muted opacity-50"></i></div>
                                 @endif

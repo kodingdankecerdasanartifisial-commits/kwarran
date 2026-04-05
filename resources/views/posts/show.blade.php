@@ -7,12 +7,21 @@
 
 
 <div class="container mb-5">
+    @php
+        $isMateri = $post->categories()->where('type', 'materi')->exists();
+    @endphp
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none" style="color: var(--primary-color);">Beranda</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('posts.index') }}" class="text-decoration-none" style="color: var(--primary-color);">Berita</a></li>
-            @if($post->category)
-            <li class="breadcrumb-item"><a href="{{ route('categories.show', $post->category->slug) }}" class="text-decoration-none" style="color: var(--primary-color);">{{ $post->category->name }}</a></li>
+            @if($isMateri)
+                <li class="breadcrumb-item"><a href="{{ route('materi.index') }}" class="text-decoration-none" style="color: var(--primary-color);">Materi</a></li>
+            @else
+                <li class="breadcrumb-item"><a href="{{ route('posts.index') }}" class="text-decoration-none" style="color: var(--primary-color);">Berita</a></li>
+            @endif
+            
+            @php $category = $post->categories()->first(); @endphp
+            @if($category)
+            <li class="breadcrumb-item"><a href="{{ route('categories.show', $category->slug) }}" class="text-decoration-none" style="color: var(--primary-color);">{{ $category->name }}</a></li>
             @endif
             <li class="breadcrumb-item active">{{ Str::limit($post->title, 50) }}</li>
         </ol>
@@ -22,8 +31,8 @@
         <!-- Main Content -->
         <div class="col-lg-8">
             <article class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
-                @if($post->featured_image)
-                <img src="{{ asset('storage/' . $post->featured_image) }}" class="img-fluid w-100" alt="{{ $post->title }}" style="max-height: 500px; object-fit: cover;">
+                @if($post->thumbnail_url)
+                <img src="{{ $post->thumbnail_url }}" class="img-fluid w-100" alt="{{ $post->title }}" style="max-height: 500px; object-fit: cover;">
                 @endif
                 
                 <div class="card-body p-4 p-md-5">
@@ -47,8 +56,22 @@
                     <!-- Post Content -->
                     <div class="post-content">
                         @if($post->youtube_url)
+                        @php
+                            $youtubeId = '';
+                            if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $post->youtube_url, $match)) {
+                                $youtubeId = $match[1];
+                            }
+                        @endphp
+                        @if($youtubeId)
                         <div class="ratio ratio-16x9 mb-4 rounded overflow-hidden shadow-sm">
-                            <iframe src="https://www.youtube.com/embed/{{ \Illuminate\Support\Str::after($post->youtube_url, 'v=') }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            <iframe src="https://www.youtube.com/embed/{{ $youtubeId }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        @endif
+                        @endif
+
+                        @if($post->embed_code)
+                        <div class="embed-code-wrapper mb-4 rounded overflow-hidden">
+                            {!! $post->embed_code !!}
                         </div>
                         @endif
 
@@ -67,8 +90,98 @@
                         </div>
                         @endif
 
-                        {!! $post->content !!}
+                    <!-- Post Content Sandbox (Iframe with Auto-Height) -->
+                    <div class="post-sandbox-wrapper" style="position: relative; width: 100%; min-height: 200px;">
+                        <template id="post-raw-content">
+                            {!! $post->content !!}
+                        </template>
+                        <template id="post-sandbox-styles">
+                            <style>
+                                body { 
+                                    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+                                    line-height: 1.8; 
+                                    font-size: 1.1rem; 
+                                    color: #333; 
+                                    margin: 0; 
+                                    padding: 15px; 
+                                    overflow-x: hidden;
+                                }
+                                * { max-width: 100%; box-sizing: border-box; }
+                                img { 
+                                    height: auto; 
+                                    margin: 20px 0; 
+                                    border-radius: 8px; 
+                                    box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+                                }
+                                p { margin-bottom: 1.5rem; }
+                                h1, h2, h3, h4, h5, h6 { 
+                                    margin-top: 30px; 
+                                    margin-bottom: 20px; 
+                                    font-weight: 700; 
+                                    color: #4B2C20;
+                                }
+                                blockquote {
+                                    background: #f9f9f9;
+                                    border-left: 5px solid #F2C94C;
+                                    padding: 20px 30px;
+                                    margin: 30px 0;
+                                    font-style: italic;
+                                    font-size: 1.2rem;
+                                }
+                                a { color: #4B2C20; text-decoration: underline; }
+                                table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+                                table, th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                                th { background-color: #f5f5f5; }
+                            </style>
+                            <base target="_blank">
+                        </template>
+                        <template id="post-sandbox-scripts">
+                            <script>
+                                function sendHeight() {
+                                    window.parent.postMessage({ 
+                                        type: 'resize', 
+                                        height: document.documentElement.scrollHeight 
+                                    }, '*');
+                                }
+                                window.addEventListener('load', function() {
+                                    setTimeout(sendHeight, 100);
+                                });
+                                // Periodically check for height changes (fallback)
+                                setInterval(sendHeight, 1000);
+                                if (window.ResizeObserver) {
+                                    new ResizeObserver(sendHeight).observe(document.body);
+                                }
+                            <\/script>
+                        </template>
+                        <iframe 
+                            id="post-sandbox-iframe"
+                            style="width: 100%; border: none; overflow: hidden; display: block; min-height: 300px;"
+                            scrolling="no"
+                        ></iframe>
                     </div>
+
+                    <script>
+                        (function() {
+                            const iframe = document.getElementById('post-sandbox-iframe');
+                            const content = document.getElementById('post-raw-content').innerHTML;
+                            const styles = document.getElementById('post-sandbox-styles').innerHTML;
+                            const scripts = document.getElementById('post-sandbox-scripts').innerHTML;
+                            
+                            if (iframe) {
+                                const docHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + styles + '</head><body>' + content + scripts + '</body></html>';
+                                iframe.srcdoc = docHtml;
+                            }
+                        })();
+
+                        window.addEventListener('message', function(event) {
+                            if (event.data.type === 'resize' && event.data.height) {
+                                const iframe = document.getElementById('post-sandbox-iframe');
+                                if (iframe) {
+                                    iframe.style.height = event.data.height + 'px';
+                                }
+                            }
+                        }, false);
+                    </script>
 
                     <!-- Share Buttons -->
                     <div class="mt-5 pt-4 border-top">
@@ -96,9 +209,9 @@
                     @foreach($relatedPosts as $relatedPost)
                     <div class="col-md-6 mb-3">
                         <div class="card post-card h-100 shadow-sm border-0">
-                            @if($relatedPost->featured_image)
+                            @if($relatedPost->thumbnail_url)
                             <a href="{{ route('posts.show', $relatedPost->slug) }}">
-                                <img src="{{ asset('storage/' . $relatedPost->featured_image) }}" class="card-img-top" alt="{{ $relatedPost->title }}" style="height: 180px; object-fit: cover;">
+                                <img src="{{ $relatedPost->thumbnail_url }}" class="card-img-top" alt="{{ $relatedPost->title }}" style="height: 180px; object-fit: cover;">
                             </a>
                             @endif
                             <div class="card-body">

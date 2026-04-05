@@ -43,6 +43,7 @@
                     <option value="admin"          {{ old('role') == 'admin' ? 'selected' : '' }}>Admin (Semua Akses)</option>
                     <option value="humas"          {{ old('role') == 'humas' || !old('role') ? 'selected' : '' }}>Humas (Edit Konten, No Delete/Settings)</option>
                     <option value="lpk"            {{ old('role') == 'lpk' ? 'selected' : '' }}>LPK (Laporan Keuangan Sahaja)</option>
+                    <option value="bendahara"      {{ old('role') == 'bendahara' ? 'selected' : '' }}>💰 Bendahara (Konfirmasi Iuran Bulanan)</option>
                     <option value="operator_gudep" {{ old('role') == 'operator_gudep' ? 'selected' : '' }}>🏫 Operator Gudep (Kelola Data Gudep Pangkalan)</option>
                     <option value="dkr"            {{ old('role') == 'dkr' ? 'selected' : '' }}>🚩 Operator DKR (Kelola Landing Page DKR)</option>
                 </select>
@@ -64,6 +65,14 @@
                 <div>
                     <strong>Role: Operator DKR</strong>
                     <p class="mb-0 small">User ini hanya dapat mengakses dan mengelola <strong>Landing Page & Berita DKR</strong>. Permission <em>dkr</em> akan diberikan secara otomatis.</p>
+                </div>
+            </div>
+
+            <div id="bendaharaRoleInfo" class="alert alert-success d-flex gap-2 align-items-start mb-4 d-none">
+                <i class="fas fa-hand-holding-usd fa-lg mt-1"></i>
+                <div>
+                    <strong>Role: Bendahara</strong>
+                    <p class="mb-0 small">User ini memiliki akses khusus untuk memvalidasi <strong>Iuran Bulanan Kwarran</strong>. Permission <em>iuran</em> akan diberikan secara otomatis.</p>
                 </div>
             </div>
 
@@ -157,18 +166,27 @@
                         section.classList.add('d-none');
                         gudepInfo.classList.add('d-none');
                         dkrInfo.classList.add('d-none');
+                        document.getElementById('bendaharaRoleInfo').classList.add('d-none');
                     } else if (role === 'operator_gudep') {
                         section.classList.add('d-none');
                         gudepInfo.classList.remove('d-none');
                         dkrInfo.classList.add('d-none');
+                        document.getElementById('bendaharaRoleInfo').classList.add('d-none');
                     } else if (role === 'dkr') {
                         section.classList.add('d-none');
                         gudepInfo.classList.add('d-none');
                         dkrInfo.classList.remove('d-none');
+                        document.getElementById('bendaharaRoleInfo').classList.add('d-none');
+                    } else if (role === 'bendahara') {
+                        section.classList.add('d-none');
+                        gudepInfo.classList.add('d-none');
+                        dkrInfo.classList.add('d-none');
+                        document.getElementById('bendaharaRoleInfo').classList.remove('d-none');
                     } else {
                         section.classList.remove('d-none');
                         gudepInfo.classList.add('d-none');
                         dkrInfo.classList.add('d-none');
+                        document.getElementById('bendaharaRoleInfo').classList.add('d-none');
                     }
                 }
 

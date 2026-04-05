@@ -12,7 +12,11 @@
                     <div class="swiper-wrapper">
                         @forelse($sliders as $slider)
                         <div class="swiper-slide">
-                            <div class="slider-bg" style="background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.5)), url('{{ asset('storage/' . $slider->image) }}');"></div>
+                            @php
+                                $localSlider = public_path('storage/' . $slider->image);
+                                $sliderSrc = file_exists($localSlider) ? asset('storage/' . $slider->image) : 'https://kwarranbekasitimur.id/storage/' . $slider->image;
+                            @endphp
+                            <div class="slider-bg" style="background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.5)), url('{{ $sliderSrc }}');"></div>
                             <div class="container h-100">
                                 <div class="row h-100 align-items-center">
                                     <div class="col-lg-8 ps-md-5 text-start animate__animated animate__fadeInUp">
@@ -168,10 +172,18 @@
                 <div class="banner-wrapper shadow-sm mb-3">
                     @if($banner->link)
                         <a href="{{ $banner->link }}" target="_blank">
-                            <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->title }}" class="banner-img">
+                            @php
+                                $localBanner = public_path('storage/' . $banner->image);
+                                $bannerSrc = file_exists($localBanner) ? asset('storage/' . $banner->image) : 'https://kwarranbekasitimur.id/storage/' . $banner->image;
+                            @endphp
+                            <img src="{{ $bannerSrc }}" alt="{{ $banner->title }}" class="banner-img">
                         </a>
                     @else
-                        <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->title }}" class="banner-img">
+                        @php
+                            $localBanner = public_path('storage/' . $banner->image);
+                            $bannerSrc = file_exists($localBanner) ? asset('storage/' . $banner->image) : 'https://kwarranbekasitimur.id/storage/' . $banner->image;
+                        @endphp
+                        <img src="{{ $bannerSrc }}" alt="{{ $banner->title }}" class="banner-img">
                     @endif
                 </div>
                 @endforeach
@@ -193,20 +205,8 @@
                     @if($mainPost)
                     <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
                         <div class="position-relative">
-                            @php
-                                $mainThumbnail = null;
-                                if ($mainPost->featured_image) {
-                                    $mainThumbnail = asset('storage/' . $mainPost->featured_image);
-                                } elseif ($mainPost->youtube_url) {
-                                    preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $mainPost->youtube_url, $matches);
-                                    if (isset($matches[1])) {
-                                        $mainThumbnail = "https://img.youtube.com/vi/{$matches[1]}/mqdefault.jpg";
-                                    }
-                                }
-                            @endphp
-
-                            @if($mainThumbnail)
-                                <img src="{{ $mainThumbnail }}" class="card-img-top" style="height: 350px; object-fit: cover;" alt="{{ $mainPost->title }}">
+                            @if($mainPost->thumbnail_url)
+                                <img src="{{ $mainPost->thumbnail_url }}" class="card-img-top" style="height: 350px; object-fit: cover;" alt="{{ $mainPost->title }}">
                                 @if(!$mainPost->featured_image && $mainPost->youtube_url)
                                 <div class="position-absolute top-50 start-50 translate-middle">
                                     <i class="fab fa-youtube fa-4x text-danger bg-white rounded-circle p-1"></i>
@@ -247,21 +247,9 @@
                         <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
                             <div class="row g-0">
                                 <div class="col-4">
-                                    @php
-                                        $stackedThumbnail = null;
-                                        if ($post->featured_image) {
-                                            $stackedThumbnail = asset('storage/' . $post->featured_image);
-                                        } elseif ($post->youtube_url) {
-                                            preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $post->youtube_url, $matches);
-                                            if (isset($matches[1])) {
-                                                $stackedThumbnail = "https://img.youtube.com/vi/{$matches[1]}/mqdefault.jpg";
-                                            }
-                                        }
-                                    @endphp
-
-                                    @if($stackedThumbnail)
+                                    @if($post->thumbnail_url)
                                         <div class="position-relative h-100">
-                                            <img src="{{ $stackedThumbnail }}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 100px;" alt="{{ $post->title }}">
+                                            <img src="{{ $post->thumbnail_url }}" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 100px;" alt="{{ $post->title }}">
                                             @if(!$post->featured_image && $post->youtube_url)
                                             <div class="position-absolute top-50 start-50 translate-middle">
                                                 <i class="fab fa-youtube fa-2x text-danger bg-white rounded-circle p-1"></i>
@@ -311,20 +299,8 @@
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden post-card-hover">
                                 <div class="position-relative">
-                                    @php
-                                        $catThumbnail = null;
-                                        if ($post->featured_image) {
-                                            $catThumbnail = asset('storage/' . $post->featured_image);
-                                        } elseif ($post->youtube_url) {
-                                            preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $post->youtube_url, $matches);
-                                            if (isset($matches[1])) {
-                                                $catThumbnail = "https://img.youtube.com/vi/{$matches[1]}/mqdefault.jpg";
-                                            }
-                                        }
-                                    @endphp
-
-                                    @if($catThumbnail)
-                                        <img src="{{ $catThumbnail }}" class="card-img-top" style="height: 160px; object-fit: cover;" alt="{{ $post->title }}">
+                                    @if($post->thumbnail_url)
+                                        <img src="{{ $post->thumbnail_url }}" class="card-img-top" style="height: 160px; object-fit: cover;" alt="{{ $post->title }}">
                                         @if(!$post->featured_image && $post->youtube_url)
                                         <div class="position-absolute top-50 start-50 translate-middle">
                                             <i class="fab fa-youtube fa-2x text-danger bg-white rounded-circle p-1"></i>
@@ -348,6 +324,41 @@
                     </div>
                 </div>
                 @endforeach
+            </div>
+            @endif
+            
+            <!-- Berita Lainnya Grid -->
+            @if(isset($otherPosts) && $otherPosts->count() > 0)
+            <div class="other-news-section mt-5 pt-4 border-top">
+                <h4 class="fw-bold mb-4 border-start border-4 border-warning ps-3">BERITA LAINNYA</h4>
+                <div class="row">
+                    @foreach($otherPosts as $post)
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden post-card-hover">
+                            <div class="position-relative">
+                                @if($post->thumbnail_url)
+                                    <img src="{{ $post->thumbnail_url }}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="{{ $post->title }}">
+                                    @if(!$post->featured_image && $post->youtube_url)
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <i class="fab fa-youtube fa-2x text-danger bg-white rounded-circle p-1"></i>
+                                    </div>
+                                    @endif
+                                @else
+                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                                        <i class="fas fa-image fa-2x text-secondary opacity-25"></i>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="card-body p-3">
+                                <small class="text-muted d-block mb-1">{{ $post->published_at?->format('d/m/Y') }}</small>
+                                <h6 class="fw-bold mb-0" style="font-size: 0.9rem; line-height: 1.4;">
+                                    <a href="{{ route('posts.show', $post->slug) }}" class="text-decoration-none text-dark hover-primary">{{ Str::limit($post->title, 50) }}</a>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
             </div>
             @endif
         </div>

@@ -9,7 +9,7 @@ class FinanceController extends Controller
 {
     public function index()
     {
-        if (!in_array(auth()->user()->role, ['admin', 'lpk'])) {
+        if (!in_array(auth()->user()->role, ['admin', 'lpk', 'bendahara'])) {
             return redirect()->route('admin.dashboard')->with('error', 'Akses ditolak.');
         }
 
@@ -24,7 +24,7 @@ class FinanceController extends Controller
 
     public function create()
     {
-        if (!in_array(auth()->user()->role, ['admin', 'lpk'])) {
+        if (!in_array(auth()->user()->role, ['admin', 'lpk', 'bendahara'])) {
             return redirect()->back()->with('error', 'Akses ditolak.');
         }
         return view('admin.finances.create');
@@ -32,7 +32,7 @@ class FinanceController extends Controller
 
     public function store(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'lpk'])) {
+        if (!in_array(auth()->user()->role, ['admin', 'lpk', 'bendahara'])) {
             return redirect()->back()->with('error', 'Akses ditolak.');
         }
 
@@ -46,12 +46,12 @@ class FinanceController extends Controller
 
         \App\Models\Finance::create($validated);
 
-        return redirect()->route('admin.lpk.finances.index')->with('success', 'Laporan keuangan berhasil ditambahkan.');
+        return redirect()->route('admin.finances.index')->with('success', 'Laporan keuangan berhasil ditambahkan.');
     }
 
     public function edit(\App\Models\Finance $finance)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'lpk'])) {
+        if (!in_array(auth()->user()->role, ['admin', 'lpk', 'bendahara'])) {
             return redirect()->back()->with('error', 'Akses ditolak.');
         }
         return view('admin.finances.edit', compact('finance'));
@@ -59,7 +59,7 @@ class FinanceController extends Controller
 
     public function update(Request $request, \App\Models\Finance $finance)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'lpk'])) {
+        if (!in_array(auth()->user()->role, ['admin', 'lpk', 'bendahara'])) {
             return redirect()->back()->with('error', 'Akses ditolak.');
         }
 
@@ -73,22 +73,22 @@ class FinanceController extends Controller
 
         $finance->update($validated);
 
-        return redirect()->route('admin.lpk.finances.index')->with('success', 'Laporan keuangan berhasil diperbarui.');
+        return redirect()->route('admin.finances.index')->with('success', 'Laporan keuangan berhasil diperbarui.');
     }
 
     public function destroy(\App\Models\Finance $finance)
     {
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->back()->with('error', 'Hanya Admin yang dapat menghapus laporan keuangan.');
+        if (!in_array(auth()->user()->role, ['admin', 'bendahara'])) {
+            return redirect()->back()->with('error', 'Hanya Admin atau Bendahara yang dapat menghapus laporan keuangan.');
         }
 
         $finance->delete();
-        return redirect()->route('admin.lpk.finances.index')->with('success', 'Laporan keuangan berhasil dihapus.');
+        return redirect()->route('admin.finances.index')->with('success', 'Laporan keuangan berhasil dihapus.');
     }
 
     public function calendar()
     {
-        if (!in_array(auth()->user()->role, ['admin', 'lpk'])) {
+        if (!in_array(auth()->user()->role, ['admin', 'lpk', 'bendahara'])) {
             return redirect()->route('admin.dashboard')->with('error', 'Akses ditolak.');
         }
 

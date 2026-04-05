@@ -80,7 +80,7 @@
                             <a href="{{ route('admin.finances.edit', $item->id) }}" class="btn btn-sm btn-outline-primary rounded-circle" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            @if(auth()->user()->role === 'admin')
+                            @if(in_array(auth()->user()->role, ['admin', 'bendahara']))
                             <form action="{{ route('admin.finances.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus data transaksi ini?')">
                                 @csrf
                                 @method('DELETE')

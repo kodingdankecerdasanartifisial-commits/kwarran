@@ -1,20 +1,21 @@
 @extends('layouts.admin')
 
-@section('page_title', 'Kelola Kategori')
+@section('page_title', 'Kelola Kategori ' . ($type == 'materi' ? 'Materi' : 'Berita'))
 
 @section('content')
 <div class="row">
     <div class="col-md-4">
         <div class="card">
             <div class="card-header bg-white">
-                <h5 class="m-0 fw-bold">Tambah Kategori</h5>
+                <h5 class="m-0 fw-bold">Tambah Kategori {{ $type == 'materi' ? 'Materi' : 'Berita' }}</h5>
             </div>
             <div class="card-body">
                 <form action="{{ route('admin.categories.store') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="type" value="{{ $type }}">
                     <div class="mb-3">
                         <label for="name" class="form-label fw-bold">Nama Kategori</label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" required>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" placeholder="Contoh: {{ $type == 'materi' ? 'Materi SKU' : 'Kegiatan' }}" required>
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

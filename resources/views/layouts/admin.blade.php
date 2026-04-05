@@ -172,7 +172,7 @@
                     @endif
 
                     <!-- Group: Publikasi -->
-                    @if($user->hasPermission('posts') || $user->hasPermission('sliders') || $user->hasPermission('events') || $user->hasPermission('gallery'))
+                    @if(($user->hasPermission('posts') || $user->hasPermission('sliders') || $user->hasPermission('events') || $user->hasPermission('gallery')) && !in_array($user->role, ['dkr', 'gudep', 'operator_gudep']))
                     <div class="nav-item">
                         <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/posts*', 'admin/sliders*', 'admin/events*', 'admin/gallery*') ? 'active' : 'collapsed' }}" 
                            data-bs-toggle="collapse" href="#collapsePublikasi">
@@ -183,13 +183,11 @@
                             <div class="nav flex-column bg-dark bg-opacity-10 ms-3 border-start border-secondary border-opacity-25">
                                 @if($user->hasPermission('posts'))
                                 <a class="nav-link py-2 {{ request()->is('admin/posts') ? 'active' : '' }}" href="{{ route('admin.posts.index') }}">Berita</a>
-                                <a class="nav-link py-2 {{ request()->is('admin/posts/materi*') ? 'active' : '' }}" href="{{ route('admin.posts.materi') }}">Materi Pokok</a>
                                 @endif
 
                                 @if($user->hasPermission('sliders'))
                                 <a class="nav-link py-2 {{ request()->is('admin/sliders*') ? 'active' : '' }}" href="{{ route('admin.sliders.index') }}">Slider</a>
                                 @endif
-
                                 @if($user->hasPermission('events'))
                                 <a class="nav-link py-2 {{ request()->is('admin/events*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">Agenda Kegiatan</a>
                                 @endif
@@ -200,6 +198,36 @@
 
                                 <a class="nav-link py-2 {{ request()->is('admin/bulletins*') ? 'active' : '' }}" href="{{ route('admin.bulletins.index') }}">Buletin Digital</a>
                             </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Materi Pembelajaran -->
+                    @if($user->hasPermission('posts'))
+                    <div class="nav-item">
+                        <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/posts/materi*', 'admin/categories*materi*') ? 'active' : 'collapsed' }}" 
+                           data-bs-toggle="collapse" href="#materiCollapse">
+                            <span><i class="fas fa-book text-warning"></i> Materi Pembelajaran</span>
+                            <i class="fas fa-chevron-down small transition"></i>
+                        </a>
+                        <div class="collapse {{ request()->is('admin/posts/materi*', 'admin/categories*materi*') ? 'show' : '' }}" id="materiCollapse" data-bs-parent="#sidebarNav">
+                            <ul class="nav flex-column bg-dark bg-opacity-10 ms-3 border-start border-secondary border-opacity-25">
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->routeIs('admin.posts.materi') ? 'active' : '' }}" href="{{ route('admin.posts.materi') }}">
+                                        <i class="fas fa-list me-2"></i> Daftar Materi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2" href="{{ route('admin.posts.create', ['type' => 'materi']) }}">
+                                        <i class="fas fa-plus-circle me-2"></i> Tambah Materi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->is('admin/categories*') && request('type') == 'materi' ? 'active' : '' }}" href="{{ route('admin.categories.index', ['type' => 'materi']) }}">
+                                        <i class="fas fa-tags me-2"></i> Kategori Materi
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                     @endif
@@ -243,7 +271,8 @@
                                 <a class="nav-link py-2 {{ request()->is('admin/pages*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}">Halaman</a>
                                 <a class="nav-link py-2 {{ request()->is('admin/menus*') ? 'active' : '' }}" href="{{ route('admin.menus.index') }}">Menu Navigasi</a>
                                 <a class="nav-link py-2 {{ request()->is('admin/sidebar-widgets*') ? 'active' : '' }}" href="{{ route('admin.sidebar-widgets.index') }}">Sidebar Widgets</a>
-                                <a class="nav-link py-2 {{ request()->is('admin/categories*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">Kategori Berita</a>
+                                <a class="nav-link py-2 {{ request()->is('admin/categories') && request('type') != 'materi' ? 'active' : '' }}" href="{{ route('admin.categories.index', ['type' => 'post']) }}">Kategori Berita</a>
+                                <a class="nav-link py-2 {{ request()->is('admin/categories*') && request('type') == 'materi' ? 'active' : '' }}" href="{{ route('admin.categories.index', ['type' => 'materi']) }}">Kategori Materi</a>
                                 <a class="nav-link py-2 {{ request()->is('admin/digital-banners*') ? 'active' : '' }}" href="{{ route('admin.digital-banners.index') }}">Spanduk Digital</a>
                             </div>
                         </div>
@@ -251,19 +280,28 @@
                     @endif
 
                     <!-- Group: Sistem Informasi Kwarran (SISRAN) -->
-                    @if($user->hasPermission('sisran'))
+                    @if($user->hasPermission('sisran') || $user->hasPermission('iuran'))
                     <div class="nav-item">
-                        <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/sisran*') ? 'active' : 'collapsed' }}" 
+                        <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/sisran*', 'admin/kta_kwarran*') ? 'active' : 'collapsed' }}" 
                            data-bs-toggle="collapse" href="#collapseSisran">
                             <span><i class="fas fa-chart-pie"></i> Sistem Informasi Kwarran</span>
                             <i class="fas fa-chevron-down small transition"></i>
                         </a>
-                        <div class="collapse {{ request()->is('admin/sisran*') ? 'show' : '' }}" id="collapseSisran" data-bs-parent="#sidebarNav">
+                        <div class="collapse {{ request()->is('admin/sisran*', 'admin/kta_kwarran*') ? 'show' : '' }}" id="collapseSisran" data-bs-parent="#sidebarNav">
                             <div class="nav flex-column bg-dark bg-opacity-10 ms-3 border-start border-secondary border-opacity-25">
+                                @if($user->hasPermission('sisran'))
                                 <a class="nav-link py-2 {{ request()->is('admin/sisran') ? 'active' : '' }}" href="{{ route('admin.sisran.index') }}">Desain Form</a>
                                 <a class="nav-link py-2 {{ request()->is('admin/sisran/create') ? 'active' : '' }}" href="{{ route('admin.sisran.create') }}">Tambah Form Baru</a>
                                 <a class="nav-link py-2 {{ request()->routeIs('admin.sisran.entries') ? 'active' : '' }}" href="{{ route('admin.sisran.index') }}">Rekap Data Isian</a>
                                 <a class="nav-link py-2 {{ request()->routeIs('admin.sisran.visualize*') ? 'active' : '' }}" href="{{ route('admin.sisran.visualize.index') }}">Visualisasi Data</a>
+                                <a class="nav-link py-2 {{ request()->routeIs('admin.kta_kwarran.*') ? 'active' : '' }}" href="{{ route('admin.kta_kwarran.index') }}">Pembuatan KTA Kwarran</a>
+                                @endif
+                                <a class="nav-link py-2 {{ request()->routeIs('admin.iuran_bulanan.*') ? 'active' : '' }}" href="{{ route('admin.iuran_bulanan.index') }}">Iuran Bulanan Kwarran</a>
+                                @if($user->role === 'bendahara')
+                                <a class="nav-link py-2 {{ request()->is('admin/finances*') ? 'active' : '' }}" href="{{ route('admin.finances.index') }}">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i> Laporan/Input Arus Kas
+                                </a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -290,6 +328,36 @@
                                 @if($user->hasPermission('organization'))
                                 <a class="nav-link py-2 {{ request()->is('admin/organization*') ? 'active' : '' }}" href="{{ route('admin.organization.index') }}">Struktur Organisasi</a>
                                 @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Group: Gugusdepan -->
+                    @if($user->hasPermission('gudep'))
+                    <div class="nav-item">
+                        <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('admin/gudep*') ? 'active' : 'collapsed' }}" 
+                           data-bs-toggle="collapse" href="#collapseGudep">
+                            <span><i class="fas fa-school"></i> Pengelolaan Gudep</span>
+                            <i class="fas fa-chevron-down small transition"></i>
+                        </a>
+                        <div class="collapse {{ request()->is('admin/gudep*') ? 'show' : '' }}" id="collapseGudep" data-bs-parent="#sidebarNav">
+                            <div class="nav flex-column bg-dark bg-opacity-10 ms-3 border-start border-secondary border-opacity-25">
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->is('admin/gudep*') ? 'active' : '' }}" href="{{ route('admin.gudep.index') }}">
+                                        <i class="fas fa-home me-2"></i> Informasi Gudep
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2 {{ request()->is('admin/posts') ? 'active' : '' }}" href="{{ route('admin.posts.index') }}">
+                                        <i class="fas fa-newspaper me-2"></i> Berita Gudep
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link py-2" href="{{ route('admin.posts.create', ['category_id' => \App\Models\Category::where('name', 'Gugusdepan')->first()?->id]) }}">
+                                        <i class="fas fa-plus-circle me-2"></i> Tambah Berita Gudep
+                                    </a>
+                                </li>
                             </div>
                         </div>
                     </div>

@@ -69,12 +69,12 @@
                     @foreach($posts as $post)
                     <article class="card post-card mb-4">
                         <div class="row g-0">
-                            @if($post->featured_image)
+                            @if($post->thumbnail_url)
                             <div class="col-md-4">
-                                <img src="{{ asset('storage/' . $post->featured_image) }}" class="img-fluid rounded-start h-100" alt="{{ $post->title }}" style="object-fit: cover;">
+                                <img src="{{ $post->thumbnail_url }}" class="img-fluid rounded-start h-100" alt="{{ $post->title }}" style="object-fit: cover;">
                             </div>
                             @endif
-                            <div class="col-md-{{ $post->featured_image ? '8' : '12' }}">
+                            <div class="col-md-{{ $post->thumbnail_url ? '8' : '12' }}">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <span class="post-category">{{ $category->name }}</span>

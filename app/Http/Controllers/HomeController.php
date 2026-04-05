@@ -24,8 +24,8 @@ class HomeController extends Controller
         // Column 1: Main featured post (Latest 1)
         $mainPost = $allLatest->first();
 
-        // Column 2: Stacked news (Next 4)
-        $stackedPosts = $allLatest->slice(1, 4);
+        // Column 2: Stacked news (Next 8)
+        $stackedPosts = $allLatest->slice(1, 8);
 
         // Column 3: Popular & Agenda
         $popularPosts = Post::where('is_published', true)
@@ -63,6 +63,7 @@ class HomeController extends Controller
             'latestPosts' => $allLatest->take(10), // For newsflash
             'categorySections' => $categorySections,
             'digitalBanners' => $digitalBanners,
+            'otherPosts' => $allLatest->slice(9, 12), // Display up to 12 more posts at the bottom
             //'sidebarWidgets' => not used (feature removed)
         ]);
     }

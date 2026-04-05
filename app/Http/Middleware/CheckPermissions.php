@@ -25,8 +25,8 @@ class CheckPermissions
                 break;
             }
 
-            // FIX: Izinkan role 'dkr' untuk mengakses halaman dengan permission 'posts'
-            if ($request->user() && $request->user()->role === 'dkr' && $perm === 'posts') {
+            // FIX: Izinkan role 'dkr', 'gudep', dan 'operator_gudep' untuk mengakses halaman dengan permission 'posts'
+            if ($request->user() && in_array($request->user()->role, ['dkr', 'gudep', 'operator_gudep']) && $perm === 'posts') {
                 $hasAccess = true;
                 break;
             }

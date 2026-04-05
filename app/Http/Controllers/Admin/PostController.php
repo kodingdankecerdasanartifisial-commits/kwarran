@@ -20,8 +20,10 @@ class PostController extends Controller
             $query->where('category_id', $request->category);
         }
 
-        // Exclude materi posts (those with PDF or YouTube)
-        $query->whereNull('youtube_url')->whereNull('material_pdf');
+        // Exclude materi posts (those in categories marked as materi)
+        $query->whereDoesntHave('categories', function($q) {
+            $q->where('type', 'materi');
+        });
 
         $posts = $query->paginate(10)->withQueryString();
 
@@ -42,10 +44,9 @@ class PostController extends Controller
     {
         $categories = Category::orderBy('name')->get();
         
-        // Materi are posts that have either a PDF or a YouTube link
-        $query = Post::with('categories')->where(function($q) {
-            $q->whereNotNull('material_pdf')
-              ->orWhereNotNull('youtube_url');
+        // Materi are posts that belong to categories marked as materi
+        $query = Post::with('categories')->whereHas('categories', function($q) {
+            $q->where('type', 'materi');
         })->orderBy('created_at', 'desc');
 
         if ($request->filled('category')) {
@@ -65,7 +66,7 @@ class PostController extends Controller
         $dkrCategory = Category::where('name', 'DKR')->first();
         
         if ($isMateri) {
-            $categories = Category::where('name', 'like', 'Materi%')->get();
+            $categories = Category::where('type', 'materi')->get();
         } else {
             if ($user->role === 'dkr') {
                 // DKR users can only create posts in the DKR category.
@@ -78,9 +79,16 @@ class PostController extends Controller
                     return redirect()->route('admin.dkr.posts')->with('error', 'Akses tidak valid untuk membuat postingan DKR.');
                 }
                 $categories = Category::where('id', $dkrCategory->id)->get();
+            } elseif ($user->role === 'gudep') {
+                // Gudep users can only create posts in Gudep related categories
+                $categories = Category::where('name', 'Gugusdepan')->get();
+                // If 'Gugusdepan' category doesn't exist, show all non-materi categories as fallback
+                if ($categories->isEmpty()) {
+                    $categories = Category::where('type', 'post')->get();
+                }
             } else {
                 // Admin and other roles see all non-materi categories
-                $categories = Category::where('name', 'not like', 'Materi%')->get();
+                $categories = Category::where('type', 'post')->get();
             }
         }
 
@@ -98,6 +106,7 @@ class PostController extends Controller
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'material_pdf' => 'nullable|file|mimes:pdf|max:5120',
             'youtube_url' => 'nullable|url',
+            'embed_code' => 'nullable',
         ]);
 
         // For backward compatibility, set category_id to the first selected category
@@ -121,7 +130,9 @@ class PostController extends Controller
         $validated['slug'] = $slug;
         $validated['author'] = auth()->user()->name;
         $validated['is_published'] = $request->has('is_published');
+        $validated['is_html'] = $request->has('is_html');
         $validated['published_at'] = $validated['is_published'] ? now() : null;
+        $validated['embed_code'] = $request->embed_code;
 
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('posts', 'public');
@@ -131,13 +142,14 @@ class PostController extends Controller
             $validated['material_pdf'] = $request->file('material_pdf')->store('materials', 'public');
         }
 
+        $validated['user_id'] = auth()->id();
         $post = Post::create($validated);
         
         // Sync multiple categories
         $post->categories()->sync($request->category_ids);
         
-        $type = $request->input('post_type');
-        $redirectRoute = ($type === 'materi') ? route('admin.posts.materi') : route('admin.posts.index');
+        $isMateriPost = $post->categories()->where('type', 'materi')->exists();
+        $redirectRoute = $isMateriPost ? route('admin.posts.materi') : route('admin.posts.index');
         
         // Redirect specifically for DKR if applicable
         $dkrCategory = Category::where('name', 'DKR')->first();
@@ -145,7 +157,7 @@ class PostController extends Controller
             $redirectRoute = route('admin.dkr.posts');
         }
 
-        $message = ($type === 'materi') ? 'Materi berhasil ditambahkan.' : 'Berita berhasil diterbitkan.';
+        $message = ($isMateriPost) ? 'Materi berhasil ditambahkan.' : 'Berita berhasil diterbitkan.';
 
         return redirect($redirectRoute)->with('success', $message);
     }
@@ -157,12 +169,20 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-        $categories = Category::all();
-        return view('admin.posts.edit', compact('post', 'categories'));
+        if (auth()->user()->role !== 'admin' && $post->user_id !== auth()->id()) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak untuk mengedit berita milik orang lain.');
+        }
+
+        $isMateri = $post->categories()->where('type', 'materi')->exists();
+        $categories = Category::where('type', $isMateri ? 'materi' : 'post')->get();
+        return view('admin.posts.edit', compact('post', 'categories', 'isMateri'));
     }
 
     public function update(Request $request, Post $post)
     {
+        if (auth()->user()->role !== 'admin' && $post->user_id !== auth()->id()) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak untuk memperbarui berita milik orang lain.');
+        }
         $validated = $request->validate([
             'title' => 'required|max:255',
             'category_ids' => 'required|array',
@@ -172,6 +192,7 @@ class PostController extends Controller
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,max:2048',
             'material_pdf' => 'nullable|file|mimes:pdf|max:5120',
             'youtube_url' => 'nullable|url',
+            'embed_code' => 'nullable',
         ]);
 
         // For backward compatibility
@@ -215,6 +236,8 @@ class PostController extends Controller
         }
 
         $post->youtube_url = $request->youtube_url;
+        $post->embed_code = $request->embed_code;
+        $post->is_html = $request->has('is_html');
 
         $post->title = $validated['title'];
         $post->content = $validated['content'];
@@ -224,7 +247,9 @@ class PostController extends Controller
         // Sync multiple categories
         $post->categories()->sync($request->category_ids);
 
-        $redirectRoute = route('admin.posts.index');
+        $isMateriPost = $post->categories()->where('type', 'materi')->exists();
+        $redirectRoute = $isMateriPost ? route('admin.posts.materi') : route('admin.posts.index');
+        
         $dkrCategory = Category::where('name', 'DKR')->first();
         if ($dkrCategory && $post->category_id == $dkrCategory->id) {
             $redirectRoute = route('admin.dkr.posts');
@@ -235,13 +260,15 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        if (auth()->user()->role !== 'admin' && auth()->user()->role !== 'dkr') {
-            return redirect()->back()->with('error', 'Hanya Admin atau Operator DKR yang dapat menghapus konten.');
+        if (auth()->user()->role !== 'admin' && $post->user_id !== auth()->id()) {
+            return redirect()->back()->with('error', 'Anda hanya dapat menghapus berita yang Anda buat sendiri.');
         }
 
         $post->delete();
         
-        $redirectRoute = route('admin.posts.index');
+        $isMateriPost = $post->categories()->where('name', 'like', 'Materi%')->exists();
+        $redirectRoute = $isMateriPost ? route('admin.posts.materi') : route('admin.posts.index');
+        
         $dkrCategory = Category::where('name', 'DKR')->first();
         if ($dkrCategory && $post->category_id == $dkrCategory->id) {
             $redirectRoute = route('admin.dkr.posts');

@@ -45,22 +45,32 @@ class MenuController extends Controller
 
     public function updateOrder(Request $request)
     {
-        $menuOrder = $request->input('order');
-        $this->orderMenu($menuOrder, null);
-
-        return response()->json(['success' => true]);
+        try {
+            $menuOrder = $request->input('order');
+            if (!$menuOrder) {
+                return response()->json(['success' => false, 'message' => 'No order data provided.']);
+            }
+            
+            $this->orderMenu($menuOrder, null);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Menu Order Update Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     private function orderMenu(array $menuItems, $parentId)
     {
         foreach ($menuItems as $index => $menuItem) {
             $menu = \App\Models\Menu::find($menuItem['id']);
-            $menu->order = $index + 1;
-            $menu->parent_id = $parentId;
-            $menu->save();
+            if ($menu) {
+                $menu->order = $index + 1;
+                $menu->parent_id = $parentId;
+                $menu->save();
 
-            if (isset($menuItem['children'])) {
-                $this->orderMenu($menuItem['children'], $menu->id);
+                if (isset($menuItem['children']) && !empty($menuItem['children'])) {
+                    $this->orderMenu($menuItem['children'], $menu->id);
+                }
             }
         }
     }

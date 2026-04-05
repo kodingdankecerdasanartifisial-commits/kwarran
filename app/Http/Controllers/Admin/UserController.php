@@ -29,7 +29,7 @@ class UserController extends Controller
             'name'        => 'required|string|max:255',
             'email'       => 'required|string|email|max:255|unique:users',
             'password'    => 'required|string|min:8|confirmed',
-            'role'        => 'required|in:admin,humas,lpk,operator_gudep,dkr',
+            'role'        => 'required|in:admin,humas,lpk,operator_gudep,dkr,bendahara',
             'permissions' => 'nullable|array',
         ], [
             'password.min'      => 'Password minimal harus 8 karakter.',
@@ -47,8 +47,10 @@ class UserController extends Controller
             $permissions = ['dkr', 'posts'];
         } elseif ($validated['role'] === 'lpk') {
             $permissions = ['lpk'];
+        } elseif ($validated['role'] === 'bendahara') {
+            $permissions = ['iuran'];
         } elseif ($validated['role'] === 'admin') {
-            $permissions = array_unique(array_merge($permissions ?? [], ['lpk']));
+            $permissions = array_unique(array_merge($permissions ?? [], ['lpk', 'iuran']));
         }
 
         \App\Models\User::create([
@@ -78,7 +80,7 @@ class UserController extends Controller
             'name'        => 'required|string|max:255',
             'email'       => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password'    => 'nullable|string|min:8|confirmed',
-            'role'        => 'required|in:admin,humas,lpk,operator_gudep,dkr',
+            'role'        => 'required|in:admin,humas,lpk,operator_gudep,dkr,bendahara',
             'permissions' => 'nullable|array',
         ], [
             'password.min'      => 'Password minimal harus 8 karakter.',
@@ -94,8 +96,10 @@ class UserController extends Controller
             $permissions = ['dkr', 'posts'];
         } elseif ($validated['role'] === 'lpk') {
             $permissions = ['lpk'];
+        } elseif ($validated['role'] === 'bendahara') {
+            $permissions = ['iuran'];
         } elseif ($validated['role'] === 'admin') {
-            $permissions = array_unique(array_merge($permissions ?? [], ['lpk']));
+            $permissions = array_unique(array_merge($permissions ?? [], ['lpk', 'iuran']));
         }
 
         $data = [

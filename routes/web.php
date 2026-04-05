@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/berita', [PostController::class, 'index'])->name('posts.index');
 Route::get('/berita/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/materi', [PostController::class, 'materiIndex'])->name('materi.index');
+Route::get('/materi/{post:slug}', [PostController::class, 'show'])->name('materi.show');
 Route::get('/kategori/{category:slug}', [App\Http\Controllers\CategoryController::class, 'show'])->name('categories.show');
 Route::get('/agenda', [App\Http\Controllers\AgendaController::class, 'index'])->name('agenda.index');
 Route::get('/agenda/feed', [App\Http\Controllers\AgendaController::class, 'getEvents'])->name('agenda.feed');
@@ -28,6 +30,7 @@ Route::get('/struktur-organisasi', function() {
     $members = \App\Models\OrganizationMember::orderBy('sort_order')->get();
     return view('pages.organization', compact('members'));
 })->name('organization.public');
+Route::get('/validasi-kta/{id}', [\App\Http\Controllers\ValidasiController::class, 'kta'])->name('validasi.kta');
 Route::get('/kontak', function () {
     return view('pages.contact'); // Assuming a contact page exists or will exist
 });
@@ -72,9 +75,20 @@ Route::post('/kontak', function (\Illuminate\Http\Request $request) {
 // Auth Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    // Iuran Bulanan (Dedicated Move)
+    Route::middleware('permission:iuran')->group(function() {
+        Route::post('iuran_bulanan/{iuranBulanan}/approve', [\App\Http\Controllers\Admin\IuranBulananController::class, 'approve'])->name('iuran_bulanan.approve');
+        Route::post('iuran_bulanan/{iuranBulanan}/reject', [\App\Http\Controllers\Admin\IuranBulananController::class, 'reject'])->name('iuran_bulanan.reject');
+        Route::resource('iuran_bulanan', \App\Http\Controllers\Admin\IuranBulananController::class)->names('iuran_bulanan');
+    });
+
+    // Keuangan Arus Kas (Accessible by Admin, LPK, or Bendahara)
+    Route::get('/finances/calendar', [\App\Http\Controllers\Admin\FinanceController::class, 'calendar'])->name('finances.calendar');
+    Route::resource('finances', \App\Http\Controllers\Admin\FinanceController::class);
     
     // Modules with Granular Permissions
-    Route::middleware('permission:posts,dkr')->group(function() {
+    Route::middleware('permission:posts,dkr,gudep')->group(function() {
         Route::get('posts/materi', [\App\Http\Controllers\Admin\PostController::class, 'materi'])->name('posts.materi');
         Route::get('posts/submissions', [\App\Http\Controllers\Admin\PostController::class, 'submissions'])->name('posts.submissions');
         Route::resource('posts', \App\Http\Controllers\Admin\PostController::class);
@@ -137,15 +151,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::resource('lpk/agendas', \App\Http\Controllers\Admin\LpkAgendaController::class, ['names' => 'lpk.agendas']);
         Route::get('lpk/posts', [\App\Http\Controllers\Admin\LpkController::class, 'posts'])->name('lpk.posts');
         
-        // Keuangan dipindahkan ke bawah LPK
+        // LPK Specific Finances
         Route::get('lpk/finances/calendar', [\App\Http\Controllers\Admin\FinanceController::class, 'calendar'])->name('lpk.finances.calendar');
         Route::resource('lpk/finances', \App\Http\Controllers\Admin\FinanceController::class, ['names' => 'lpk.finances']);
-
-        // WORKAROUND: Alias untuk route lama agar view keuangan tidak error.
-        // Ini diperlukan karena view 'admin.finances.index' kemungkinan masih menggunakan route('admin.finances.*')
-        Route::get('/finances/calendar', [\App\Http\Controllers\Admin\FinanceController::class, 'calendar'])->name('finances.calendar');
-        Route::resource('finances', \App\Http\Controllers\Admin\FinanceController::class);
-
     });
 
     Route::middleware('permission:sisran')->group(function() {
@@ -154,6 +162,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('sisran/{sisran_form}/visualize', [\App\Http\Controllers\Admin\SisranController::class, 'visualizeUpdate'])->name('sisran.visualize.update');
         Route::get('sisran/{sisran_form}/entries', [\App\Http\Controllers\Admin\SisranController::class, 'entries'])->name('sisran.entries');
         Route::resource('sisran', \App\Http\Controllers\Admin\SisranController::class);
+        
+        Route::get('kta_kwarran/{kta_kwarran}/print', [\App\Http\Controllers\Admin\KtaKwarranController::class, 'print'])->name('kta_kwarran.print');
+        Route::resource('kta_kwarran', \App\Http\Controllers\Admin\KtaKwarranController::class);
     });
 
     // Admin Only Management
@@ -207,6 +218,14 @@ Route::get('/lpk', [\App\Http\Controllers\LpkController::class, 'index'])->name(
 Route::get('/sisran/isi/{slug}', [\App\Http\Controllers\SisranPublicController::class, 'showForm'])->name('sisran.public.form');
 Route::post('/sisran/isi/{slug}', [\App\Http\Controllers\SisranPublicController::class, 'storeEntry'])->name('sisran.public.store');
 Route::get('/sisran/hasil/{slug}', [\App\Http\Controllers\SisranPublicController::class, 'showResult'])->name('sisran.public.result');
+
+// Iuran Bulanan Public Routes
+Route::get('/iuran-pangkalan', [\App\Http\Controllers\IuranPublicController::class, 'create'])->name('iuran.public.create');
+Route::post('/iuran-pangkalan', [\App\Http\Controllers\IuranPublicController::class, 'store'])->name('iuran.public.store');
+
+// Gudep Public Registration
+Route::get('/daftar-gudep', [\App\Http\Controllers\RegistrationController::class, 'create'])->name('register.gudep');
+Route::post('/daftar-gudep', [\App\Http\Controllers\RegistrationController::class, 'store'])->name('register.gudep.store');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
