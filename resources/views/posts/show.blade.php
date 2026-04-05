@@ -90,81 +90,118 @@
                         </div>
                         @endif
 
-                    <!-- Sandbox Iframe with Dynamic Responsive Height -->
-                    <div class="post-sandbox-wrapper" style="position: relative; width: 100%;">
-                        <iframe 
-                            id="post-sandbox-iframe"
-                            style="width: 100%; border: none; overflow: hidden; display: block; height: 100px; transition: height 0.2s ease;"
-                            scrolling="no"
-                        ></iframe>
-                    </div>
-
-                    <script>
-                        (function() {
-                            const iframe = document.getElementById('post-sandbox-iframe');
-                            const rawContent = {!! json_encode($post->content) !!}; 
-                            const isHtml = {{ $post->is_html ? 'true' : 'false' }};
-                            
-                            const defaultStyles = isHtml ? '<style>body { margin: 0; padding: 0; overflow-x: hidden; }</style>' : `
-                                <style>
-                                    body { 
-                                        font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-                                        line-height: 1.8; 
-                                        font-size: 1.1rem; 
-                                        color: #333; 
-                                        margin: 0; 
-                                        padding: 15px; 
-                                        overflow-x: hidden;
-                                    }
-                                    * { max-width: 100%; box-sizing: border-box; }
-                                    img { height: auto; margin: 20px 0; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-                                    p { margin-bottom: 1.5rem; }
-                                    h1, h2, h3, h4, h5, h6 { margin-top: 30px; margin-bottom: 20px; font-weight: 700; color: #4B2C20; }
-                                    blockquote { background: #f9f9f9; border-left: 5px solid #F2C94C; padding: 20px 30px; margin: 30px 0; font-style: italic; font-size: 1.2rem; }
-                                    a { color: #4B2C20; text-decoration: underline; }
-                                    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
-                                    table, th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                                    th { background-color: #f5f5f5; }
-                                </style>
-                            `;
-                            
-                            const resizeScript = `
-                                <script>
-                                    function sendHeight() {
-                                        const height = Math.max(
-                                            document.body.scrollHeight, 
-                                            document.body.offsetHeight, 
-                                            document.documentElement.clientHeight, 
-                                            document.documentElement.scrollHeight, 
-                                            document.documentElement.offsetHeight
-                                        );
-                                        window.parent.postMessage({ type: 'resize', height: height }, '*');
-                                    }
-                                    window.addEventListener('load', sendHeight);
-                                    window.addEventListener('resize', sendHeight);
-                                    setInterval(sendHeight, 1000);
-                                    if (window.ResizeObserver) {
-                                        new ResizeObserver(sendHeight).observe(document.body);
-                                    }
-                                <\\/script>
-                            `;
-                            
-                            const docHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base target="_blank">' + defaultStyles + '</head><body>' + (rawContent || '') + resizeScript + '</body></html>';
-                            
-                            if (iframe) {
-                                iframe.srcdoc = docHtml;
+                    @if($post->is_html)
+                        <!-- Native Scoped Rendering: Provides native feel like reference site while protecting outer layout -->
+                        <div id="post-content-native" class="post-content-native-wrapper">
+                            {!! $post->content !!}
+                        </div>
+                        
+                        <script>
+                            (function() {
+                                // Auto-scope styles to prevent header/footer breakage
+                                const wrapper = document.getElementById('post-content-native');
+                                if (!wrapper) return;
+                                
+                                const styles = wrapper.querySelectorAll('style');
+                                styles.forEach(styleTag => {
+                                    const css = styleTag.innerHTML;
+                                    // Basic regex to prefix selectors that don't already start with the wrapper ID
+                                    // This is a safety measure to prevent leakage to header/footer
+                                    const scopedCss = css.replace(/(^|[^},]+)([^{]+)({)/g, (match, p1, p2, p3) => {
+                                        const selectors = p2.split(',').map(s => {
+                                            const trimmed = s.trim();
+                                            if (trimmed.startsWith('@') || trimmed.startsWith(':root')) return trimmed;
+                                            return '#post-content-native ' + trimmed;
+                                        }).join(', ');
+                                        return p1 + selectors + ' ' + p3;
+                                    });
+                                    styleTag.innerHTML = scopedCss;
+                                });
+                            })();
+                        </script>
+                        <style>
+                            .post-content-native-wrapper {
+                                position: relative;
+                                width: 100%;
+                                clear: both;
                             }
-                        })();
+                        </style>
+                    @else
+                        <!-- Standard Sandbox Iframe for isolated Rich Text content -->
+                        <div class="post-sandbox-wrapper" style="position: relative; width: 100%;">
+                            <iframe 
+                                id="post-sandbox-iframe"
+                                style="width: 100%; border: none; overflow: hidden; display: block; height: 100px; transition: height 0.2s ease;"
+                                scrolling="no"
+                            ></iframe>
+                        </div>
 
-                        window.addEventListener('message', function(event) {
-                            if (event.data.type === 'resize' && event.data.height) {
+                        <script>
+                            (function() {
                                 const iframe = document.getElementById('post-sandbox-iframe');
-                                if (iframe && Math.abs(iframe.offsetHeight - event.data.height) > 5) {
-                                    iframe.style.height = event.data.height + 'px';
+                                const rawContent = {!! json_encode($post->content) !!}; 
+                                
+                                const defaultStyles = `
+                                    <style>
+                                        body { 
+                                            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+                                            line-height: 1.8; 
+                                            font-size: 1.1rem; 
+                                            color: #333; 
+                                            margin: 0; 
+                                            padding: 15px; 
+                                            overflow-x: hidden;
+                                        }
+                                        * { max-width: 100%; box-sizing: border-box; }
+                                        img { height: auto; margin: 20px 0; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+                                        p { margin-bottom: 1.5rem; }
+                                        h1, h2, h3, h4, h5, h6 { margin-top: 30px; margin-bottom: 20px; font-weight: 700; color: #4B2C20; }
+                                        blockquote { background: #f9f9f9; border-left: 5px solid #F2C94C; padding: 20px 30px; margin: 30px 0; font-style: italic; font-size: 1.2rem; }
+                                        a { color: #4B2C20; text-decoration: underline; }
+                                        table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+                                        table, th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                                        th { background-color: #f5f5f5; }
+                                    </style>
+                                `;
+                                
+                                const resizeScript = `
+                                    <script>
+                                        function sendHeight() {
+                                            const height = Math.max(
+                                                document.body.scrollHeight, 
+                                                document.body.offsetHeight, 
+                                                document.documentElement.clientHeight, 
+                                                document.documentElement.scrollHeight, 
+                                                document.documentElement.offsetHeight
+                                            );
+                                            window.parent.postMessage({ type: 'resize', height: height }, '*');
+                                        }
+                                        window.addEventListener('load', sendHeight);
+                                        window.addEventListener('resize', sendHeight);
+                                        setInterval(sendHeight, 1000);
+                                        if (window.ResizeObserver) {
+                                            new ResizeObserver(sendHeight).observe(document.body);
+                                        }
+                                    <\\/script>
+                                `;
+                                
+                                const docHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base target="_blank">' + defaultStyles + '</head><body>' + (rawContent || '') + resizeScript + '</body></html>';
+                                
+                                if (iframe) {
+                                    iframe.srcdoc = docHtml;
                                 }
-                            }
-                        }, false);
-                    </script>
+                            })();
+
+                            window.addEventListener('message', function(event) {
+                                if (event.data.type === 'resize' && event.data.height) {
+                                    const iframe = document.getElementById('post-sandbox-iframe');
+                                    if (iframe && Math.abs(iframe.offsetHeight - event.data.height) > 5) {
+                                        iframe.style.height = event.data.height + 'px';
+                                    }
+                                }
+                            }, false);
+                        </script>
+                    @endif
 
                     <!-- Share Buttons -->
                     <div class="mt-5 pt-4 border-top">
