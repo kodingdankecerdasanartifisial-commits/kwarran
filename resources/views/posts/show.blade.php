@@ -90,11 +90,11 @@
                         </div>
                         @endif
 
-                    <!-- Sandbox Iframe with Isolation for content to prevent layout breakage -->
-                    <div class="post-sandbox-wrapper" style="position: relative; width: 100%; min-height: 200px;">
+                    <!-- Sandbox Iframe with Dynamic Responsive Height -->
+                    <div class="post-sandbox-wrapper" style="position: relative; width: 100%;">
                         <iframe 
                             id="post-sandbox-iframe"
-                            style="width: 100%; border: none; overflow: hidden; display: block; min-height: 300px;"
+                            style="width: 100%; border: none; overflow: hidden; display: block; height: 100px; transition: height 0.2s ease;"
                             scrolling="no"
                         ></iframe>
                     </div>
@@ -105,8 +105,7 @@
                             const rawContent = {!! json_encode($post->content) !!}; 
                             const isHtml = {{ $post->is_html ? 'true' : 'false' }};
                             
-                            // Default styles for standard posts (non-HTML mode)
-                            const defaultStyles = isHtml ? '' : `
+                            const defaultStyles = isHtml ? '<style>body { margin: 0; padding: 0; overflow-x: hidden; }</style>' : `
                                 <style>
                                     body { 
                                         font-family: 'Inter', system-ui, -apple-system, sans-serif; 
@@ -132,14 +131,17 @@
                             const resizeScript = `
                                 <script>
                                     function sendHeight() {
-                                        window.parent.postMessage({ 
-                                            type: 'resize', 
-                                            height: document.documentElement.scrollHeight 
-                                        }, '*');
+                                        const height = Math.max(
+                                            document.body.scrollHeight, 
+                                            document.body.offsetHeight, 
+                                            document.documentElement.clientHeight, 
+                                            document.documentElement.scrollHeight, 
+                                            document.documentElement.offsetHeight
+                                        );
+                                        window.parent.postMessage({ type: 'resize', height: height }, '*');
                                     }
-                                    window.addEventListener('load', function() {
-                                        setTimeout(sendHeight, 200);
-                                    });
+                                    window.addEventListener('load', sendHeight);
+                                    window.addEventListener('resize', sendHeight);
                                     setInterval(sendHeight, 1000);
                                     if (window.ResizeObserver) {
                                         new ResizeObserver(sendHeight).observe(document.body);
@@ -147,7 +149,7 @@
                                 <\\/script>
                             `;
                             
-                            const docHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><base target="_blank">' + defaultStyles + '</head><body>' + rawContent + resizeScript + '</body></html>';
+                            const docHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base target="_blank">' + defaultStyles + '</head><body>' + (rawContent || '') + resizeScript + '</body></html>';
                             
                             if (iframe) {
                                 iframe.srcdoc = docHtml;
@@ -157,7 +159,7 @@
                         window.addEventListener('message', function(event) {
                             if (event.data.type === 'resize' && event.data.height) {
                                 const iframe = document.getElementById('post-sandbox-iframe');
-                                if (iframe) {
+                                if (iframe && Math.abs(iframe.offsetHeight - event.data.height) > 5) {
                                     iframe.style.height = event.data.height + 'px';
                                 }
                             }
