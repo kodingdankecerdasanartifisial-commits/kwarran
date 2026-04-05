@@ -90,18 +90,23 @@
                         </div>
                         @endif
 
-                    @if($post->is_html)
-                        <!-- Mode HTML: Render raw and direct without sandbox isolation -->
-                        <div class="post-content-raw">
-                            {!! $post->content !!}
-                        </div>
-                    @else
-                        <!-- Content Mode: Use Sandbox Iframe with Auto-Height for layout protection -->
-                        <div class="post-sandbox-wrapper" style="position: relative; width: 100%; min-height: 200px;">
-                            <template id="post-raw-content">
-                                {!! $post->content !!}
-                            </template>
-                            <template id="post-sandbox-styles">
+                    <!-- Sandbox Iframe with Isolation for content to prevent layout breakage -->
+                    <div class="post-sandbox-wrapper" style="position: relative; width: 100%; min-height: 200px;">
+                        <iframe 
+                            id="post-sandbox-iframe"
+                            style="width: 100%; border: none; overflow: hidden; display: block; min-height: 300px;"
+                            scrolling="no"
+                        ></iframe>
+                    </div>
+
+                    <script>
+                        (function() {
+                            const iframe = document.getElementById('post-sandbox-iframe');
+                            const rawContent = {!! json_encode($post->content) !!}; 
+                            const isHtml = {{ $post->is_html ? 'true' : 'false' }};
+                            
+                            // Default styles for standard posts (non-HTML mode)
+                            const defaultStyles = isHtml ? '' : `
                                 <style>
                                     body { 
                                         font-family: 'Inter', system-ui, -apple-system, sans-serif; 
@@ -113,35 +118,18 @@
                                         overflow-x: hidden;
                                     }
                                     * { max-width: 100%; box-sizing: border-box; }
-                                    img { 
-                                        height: auto; 
-                                        margin: 20px 0; 
-                                        border-radius: 8px; 
-                                        box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-                                    }
+                                    img { height: auto; margin: 20px 0; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
                                     p { margin-bottom: 1.5rem; }
-                                    h1, h2, h3, h4, h5, h6 { 
-                                        margin-top: 30px; 
-                                        margin-bottom: 20px; 
-                                        font-weight: 700; 
-                                        color: #4B2C20;
-                                    }
-                                    blockquote {
-                                        background: #f9f9f9;
-                                        border-left: 5px solid #F2C94C;
-                                        padding: 20px 30px;
-                                        margin: 30px 0;
-                                        font-style: italic;
-                                        font-size: 1.2rem;
-                                    }
+                                    h1, h2, h3, h4, h5, h6 { margin-top: 30px; margin-bottom: 20px; font-weight: 700; color: #4B2C20; }
+                                    blockquote { background: #f9f9f9; border-left: 5px solid #F2C94C; padding: 20px 30px; margin: 30px 0; font-style: italic; font-size: 1.2rem; }
                                     a { color: #4B2C20; text-decoration: underline; }
                                     table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
                                     table, th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
                                     th { background-color: #f5f5f5; }
                                 </style>
-                                <base target="_blank">
-                            </template>
-                            <template id="post-sandbox-scripts">
+                            `;
+                            
+                            const resizeScript = `
                                 <script>
                                     function sendHeight() {
                                         window.parent.postMessage({ 
@@ -150,45 +138,31 @@
                                         }, '*');
                                     }
                                     window.addEventListener('load', function() {
-                                        setTimeout(sendHeight, 100);
+                                        setTimeout(sendHeight, 200);
                                     });
-                                    // Periodically check for height changes (fallback)
                                     setInterval(sendHeight, 1000);
                                     if (window.ResizeObserver) {
                                         new ResizeObserver(sendHeight).observe(document.body);
                                     }
-                                <\/script>
-                            </template>
-                            <iframe 
-                                id="post-sandbox-iframe"
-                                style="width: 100%; border: none; overflow: hidden; display: block; min-height: 300px;"
-                                scrolling="no"
-                            ></iframe>
-                        </div>
+                                <\\/script>
+                            `;
+                            
+                            const docHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><base target="_blank">' + defaultStyles + '</head><body>' + rawContent + resizeScript + '</body></html>';
+                            
+                            if (iframe) {
+                                iframe.srcdoc = docHtml;
+                            }
+                        })();
 
-                        <script>
-                            (function() {
+                        window.addEventListener('message', function(event) {
+                            if (event.data.type === 'resize' && event.data.height) {
                                 const iframe = document.getElementById('post-sandbox-iframe');
-                                const content = document.getElementById('post-raw-content').innerHTML;
-                                const styles = document.getElementById('post-sandbox-styles').innerHTML;
-                                const scripts = document.getElementById('post-sandbox-scripts').innerHTML;
-                                
                                 if (iframe) {
-                                    const docHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + styles + '</head><body>' + content + scripts + '</body></html>';
-                                    iframe.srcdoc = docHtml;
+                                    iframe.style.height = event.data.height + 'px';
                                 }
-                            })();
-
-                            window.addEventListener('message', function(event) {
-                                if (event.data.type === 'resize' && event.data.height) {
-                                    const iframe = document.getElementById('post-sandbox-iframe');
-                                    if (iframe) {
-                                        iframe.style.height = event.data.height + 'px';
-                                    }
-                                }
-                            }, false);
-                        </script>
-                    @endif
+                            }
+                        }, false);
+                    </script>
 
                     <!-- Share Buttons -->
                     <div class="mt-5 pt-4 border-top">
